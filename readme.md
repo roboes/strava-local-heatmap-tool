@@ -36,15 +36,11 @@ Note: Please keep in mind that Strava's bulk export is language sensitive, i.e. 
 In essence, the process is as follows:
 1. Log in to [Strava](https://www.strava.com).
 2. Open the [Account Download and Deletion](https://www.strava.com/athlete/delete_your_account). Then press ```Request Your Archive``` button (Important: Don't press anything else on that page, particularly not the ```Request Account Deletion``` button).
-3. Wait until Strava notifies you that your archive is ready via email. Download the archive file and unzip it.
+3. Wait until Strava notifies you that your archive is ready via email. Download the archive file and unzip it to ```Downloads/Strava``` folder (or alternatively set a different working directory in the [strava-local-heatmap-tool.py](strava-local-heatmap-tool.py) code).
 
 ### Python dependencies
 
 <code>python -m pip install numpy pandas pyjanitor geopy folium plotnine sweat</code>
-
-### Run the script
-
-Set working directory.
 
 ### Save map as a high definition .png file and print it on canvas
 
