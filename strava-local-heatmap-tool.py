@@ -1,31 +1,31 @@
 ## Strava Local Heatmap Tool
-# Last update: 2022-04-12
+# Last update: 2022-04-19
 
 
 # Erase all declared global variables
 globals().clear()
 
 # Import packages
-import os
+import datetime
 import glob
 import gzip
-import datetime
-import time
+import os
 import shutil
+import time
 import webbrowser
 
 import folium
 from geopy.geocoders import Nominatim
-import pandas as pd
 import janitor
 import numpy as np
-import sweat
+import pandas as pd
 from plotnine import *
+import sweat
 
 # Set working directory to user's 'Downloads/Strava' folder
 os.chdir(os.path.join(os.path.expanduser('~'), r'Downloads/Strava'))
 
-# Create output folder inside Strava folder
+# Create 'output' folder inside Strava folder
 os.makedirs('output', exist_ok=True)
 
 
