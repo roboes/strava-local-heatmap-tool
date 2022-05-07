@@ -24,6 +24,12 @@ Vienna (rides in orange; runs in blue)
 <img src="examples/heatmap_vienna_1.png" alt="Heatmap Vienna" width=800>
 </p>
 
+Map interaction (option to navigate through the map, click in a line and get an activity summary pop-up)
+
+<p align="center">
+<img src="examples/heatmap_popup_1.png" alt="Heatmap Pop-up" width=800>
+</p>
+
 
 ## Usage
 
