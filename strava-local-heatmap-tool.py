@@ -23,7 +23,7 @@ from plotnine import *
 import sweat
 
 # Set working directory to user's 'Downloads/Strava' folder
-os.chdir(os.path.join(os.path.expanduser('~'), r'Downloads/Strava'))
+os.chdir(os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava'))
 
 # Create 'output' folder inside Strava folder
 os.makedirs('output', exist_ok=True)
@@ -55,7 +55,7 @@ def gz_extract(directory):
 def tcx_lstrip():
 
     ## List of .tcx files to be imported
-    activities_files_list = glob.glob(r'activities/*.tcx')
+    activities_files_list = glob.glob(os.path.join('activities', '*.tcx'))
 
     ## Remove leading spaces from first row
     for index in activities_files_list:
@@ -76,9 +76,9 @@ def import_activities():
     global activities_points
 
     ## List of files to be imported
-    activities_files_list = glob.glob(r'activities/*.fit')
-    activities_files_list.extend(glob.glob(r'activities/*.gpx'))
-    activities_files_list.extend(glob.glob(r'activities/*.tcx'))
+    activities_files_list = glob.glob(os.path.join('activities', '*.fit'))
+    activities_files_list.extend(glob.glob(os.path.join('activities', '*.gpx')))
+    activities_files_list.extend(glob.glob(os.path.join('activities', '*.tcx')))
 
     ## Create empty dataframe
     activities_points = pd.DataFrame(dtype=object)
@@ -92,7 +92,8 @@ def import_activities():
 
             # Create new column with the name of the file
             df['filename'] = index
-            df['filename'] = df['filename'].str.replace(r'^activities\\', r'activities/', regex=True)
+            df['filename'] = df['filename'].str.replace(r'^activities', r'', regex=True)
+            df['filename'] = df['filename'].str.replace(r'^/[/]?|\\[\\]?', r'', regex=True)
 
             # Concatenate dataframe
             activities_points = pd.concat([activities_points, df])
@@ -142,7 +143,7 @@ def get_geolocation():
     activities_location['postal_code'] = activities_location.apply(lambda row: row['location'].raw.get('address').get('postcode') if pd.notna(row['location']) else np.nan, axis=1)
 
     # Rename columns
-    activities_location = activities_location.rename(columns = {'country': 'activity_country', 'state': 'activity_state', 'city': 'activity_city', 'postal_code': 'activity_postal_code', 'latitude': 'activity_latitude', 'longitude': 'activity_longitude'})
+    activities_location = activities_location.rename(columns={'country': 'activity_country', 'state': 'activity_state', 'city': 'activity_city', 'postal_code': 'activity_postal_code', 'latitude': 'activity_latitude', 'longitude': 'activity_longitude'})
 
     # Select and rearrange columns
     activities_location = activities_location.filter(['filename', 'activity_country', 'activity_state', 'activity_city', 'activity_postal_code', 'activity_latitude', 'activity_longitude'])
@@ -152,11 +153,11 @@ def get_geolocation():
 
 
 
-## Copy activity list files to output\activities folder
+## Copy activity list files to output/activities folder
 def copy_activities(list):
-    os.makedirs(r'output/activities', exist_ok=True)
-    for filename in ('activities//'+list).tolist():
-        shutil.copy(filename, r'output/activities')
+    os.makedirs(os.path.join('output', 'activities'), exist_ok=True)
+    for filename in list.tolist():
+        shutil.copy(os.path.join('activities', filename), os.path.join('output', 'activities'))
 
 
 
@@ -166,7 +167,7 @@ def copy_activities(list):
 ########################
 
 ## Extract .gz files
-gz_extract(os.path.join(os.getcwd(), r'activities'))
+gz_extract(os.path.join(os.getcwd(), 'activities'))
 
 ## Remove leading first line blank spaces of .tcx activity files
 tcx_lstrip()
@@ -175,10 +176,10 @@ tcx_lstrip()
 import_activities()
 
 ## Save activities_points
-activities_points.to_csv(path_or_buf = r'output/activities_points.csv', sep = ',', index = False, encoding='utf8')
+activities_points.to_csv(path_or_buf=os.path.join('output', 'activities_points.csv'), sep=',', index=False, encoding='utf8')
 
 ## Load activities_points
-# activities_points = pd.read_csv(r'output/activities_points.csv', sep = ',')
+# activities_points = pd.read_csv(filepath_or_buffer=os.path.join('output', 'activities_points.csv'), sep=',')
 
 # Get geolocation for .fit/.gpx/.tcx activity files given the start recorded point (first non-missing latitude/longitude)
 get_geolocation()
@@ -201,11 +202,11 @@ pd.Series(activities_location['filename']).is_unique
 # max_speed, average_speed: meters/second
 
 ## Import Strava activities
-activities = pd.read_csv(r'activities.csv')
+activities = pd.read_csv(filepath_or_buffer='activities.csv')
 activities = activities.clean_names()
 
-## Clean 'filename' variable
-#activities['filename'] = activities['filename'].str.replace(r'^activities/', r'', regex=True)
+## Clean filename variable
+activities['filename'] = activities['filename'].str.replace(r'^activities/', r'', regex=True)
 activities['filename'] = activities['filename'].str.replace(r'\.gz$', r'', regex=True)
 
 ## Get activities location
@@ -235,10 +236,10 @@ activities = activities.assign(max_speed=activities['max_speed']*3.6,
 activities = activities.sort_values(by=['activity_date', 'activity_type'], ignore_index=True)
 
 ## Save activities
-activities.to_csv(path_or_buf=r'output/activities.csv', sep=',', index=False, encoding='utf8')
+activities.to_csv(path_or_buf=os.path.join('output', 'activities.csv'), sep=',', index=False, encoding='utf8')
 
 ## Load activities
-# activities = pd.read_csv(r'output/activities.csv', sep=',')
+# activities = pd.read_csv(filepath_or_buffer=os.path.join('output', 'activities.csv'), sep=',')
 
 
 
@@ -281,7 +282,7 @@ strava_yearly_overview = activities[activities['activity_type'] == 'Ride']
 strava_yearly_overview = strava_yearly_overview[(strava_yearly_overview['activity_date'] >= '2017-01-01') & (strava_yearly_overview['activity_date'] <= '2021-12-31')]
 strava_yearly_overview = strava_yearly_overview.assign(distance = strava_yearly_overview['distance']/1000,
     year = strava_yearly_overview['activity_date'].dt.year,
-    distance_cumulative = lambda x: x.groupby(pd.Grouper(key = 'activity_date', freq = 'Y'))['distance'].transform('cumsum'),
+    distance_cumulative = lambda x: x.groupby(pd.Grouper(key='activity_date', freq='Y'))['distance'].transform('cumsum'),
     activity_date = strava_yearly_overview['activity_date'].dt.dayofyear)
 
 (ggplot(strava_yearly_overview, aes(x='activity_date', y='distance_cumulative', group='year', color='factor(year)')) +
@@ -342,8 +343,8 @@ activities_points_filtered = activities_points_filtered.filter(['datetime', 'fil
 ## Test
 len(activities_points_filtered['filename'].drop_duplicates()) == len(activities_filtered)
 
-## Get activity_id and activity_type
-activities_points_filtered = activities_points_filtered.merge(activities[['filename', 'activity_id', 'activity_type']], how='left', on='filename').drop('filename', axis=1)
+## Get activity_id, activity_type and distance
+activities_points_filtered = activities_points_filtered.merge(activities[['filename', 'activity_id', 'activity_type', 'distance']], how='left', on='filename').drop('filename', axis=1)
 
 ## Test memory usage
 activities_points_filtered.info(memory_usage='deep')
@@ -351,8 +352,8 @@ activities_points_filtered.info(memory_usage='deep')
 ## Transform latitude/longitude to list
 activities_points_filtered['point'] = list(zip(activities_points_filtered['latitude'], activities_points_filtered['longitude']))
 
-# Copy filtered activity list files to output\activities folder
-#copy_activities(list=activities_filtered['filename'])
+# Copy filtered activity list files to output/activities folder
+# copy_activities(list=activities_filtered['filename'])
 
 
 
@@ -395,22 +396,24 @@ for activity_type in activities_points_filtered['activity_type'].unique():
 
     for activity in df_activity_type['activity_id'].unique():
             date = df_activity_type[df_activity_type['activity_id']==activity]['datetime'].dt.date.iloc[0]
+            distance = round(df_activity_type[df_activity_type['activity_id']==activity]['distance'].iloc[0]/1000, 1)
 
             points = tuple(df_activity_type[df_activity_type['activity_id']==activity]['point'])
-            folium.PolyLine(points, color=activity_colors[activity_type],
-                            weight=line_weight,
-                            opacity=0.6,
-                            control=True,
-                            name=activity_type,
-                            popup=activity_type+' (ID: '+'<a href=https://www.strava.com/activities/'+str(activity)+'>'+str(activity)+'</a>), '+str(date),
-                            tooltip=activity_type,
-                            smooth_factor=1.0,
-                            overlay=True).add_to(activities_map)
+            folium.PolyLine(locations=points,
+                color=activity_colors[activity_type],
+                weight=line_weight,
+                opacity=0.6,
+                control=True,
+                name=activity_type,
+                popup=folium.Popup(html=('Activity type: '+activity_type+'<br>'+'Date: '+str(date)+'<br>'+'Distance: '+str(distance)+' km'+'<br>'+'<br>'+'<a href=https://www.strava.com/activities/'+str(activity)+'>'+'Open in Strava'+'</a>'), min_width=100, max_width=100),
+                tooltip=activity_type,
+                smooth_factor=1.0,
+                overlay=True).add_to(activities_map)
 
 
 ## Save to .html file
-activities_map.save('output/activities_map.html')
-webbrowser.open('output/activities_map.html')
+activities_map.save(os.path.join('output', 'activities-map.html'))
+webbrowser.open(os.path.join('output', 'activities-map.html'))
 
 
 
