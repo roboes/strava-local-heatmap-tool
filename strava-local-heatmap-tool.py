@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2022-04-19
+# Last update: 2022-05-07
 
 
 # Erase all declared global variables
@@ -56,10 +56,10 @@ def tcx_lstrip():
 
     ## List of .tcx files to be imported
     activities_files_list = glob.glob(r'activities/*.tcx')
-    
+
     ## Remove leading spaces from first row
     for index in activities_files_list:
-    
+
         with open(file=index, mode='r') as f:
             lines = f.readlines()
             lines[0] = lines[0].lstrip()
@@ -74,7 +74,7 @@ def import_activities():
 
     ## Create or import global variables
     global activities_points
-    
+
     ## List of files to be imported
     activities_files_list = glob.glob(r'activities/*.fit')
     activities_files_list.extend(glob.glob(r'activities/*.gpx'))
@@ -85,33 +85,33 @@ def import_activities():
 
     ## Import activities
     for index in activities_files_list:
-        
+
         try:
             # Import file and convert to dataframe
             df = sweat.read_file(fpath=index)
-            
+
             # Create new column with the name of the file
             df['filename'] = index
             df['filename'] = df['filename'].str.replace(r'^activities\\', r'activities/', regex=True)
-            
+
             # Concatenate dataframe
             activities_points = pd.concat([activities_points, df])
-        
+
         except:
             pass
-        
+
     # Convert index to column
     activities_points.reset_index(level=0, inplace=True)
-    
+
     # Select and rearrange columns
     activities_points = activities_points.filter(['datetime', 'filename', 'latitude', 'longitude'])
-    
+
     # Rearrange rows
     activities_points = activities_points.sort_values(by=['datetime', 'filename'], ignore_index=True)
-    
+
     ## Get elapsed time (in seconds)
     #activities_points['elapsed_time'] = activities_points.groupby('filename', as_index=False)['datetime'].transform(lambda row: (row.max() - row.min()).total_seconds())
-    
+
     # Remove rows without latitude/longitude
     activities_points = activities_points[activities_points['latitude'].notna()]
 
@@ -122,19 +122,19 @@ def import_activities():
 
 ## Get geolocation for .fit/.gpx/.tcx activity files given the start recorded point (first non-missing latitude/longitude)
 def get_geolocation():
-    
+
     ## Create or import global variables
     global activities_points
     global activities_location
-    
+
     activities_location = activities_points
-    
+
     # Get first row for each group of filename
     activities_location = activities_location.groupby('filename', as_index=False).first()
 
     ## Get location
     geolocator = Nominatim(user_agent='http')
-    
+
     activities_location['location'] = activities_location.apply(lambda row: geolocator.reverse('{}, {}'.format(row['latitude'], row['longitude']), language='en') if pd.notna(row['latitude']) else np.nan, axis=1)
     activities_location['country'] = activities_location.apply(lambda row: row['location'].raw.get('address').get('country') if pd.notna(row['location']) else np.nan, axis=1)
     activities_location['state'] = activities_location.apply(lambda row: row['location'].raw.get('address').get('state') if pd.notna(row['location']) else np.nan, axis=1)
@@ -143,7 +143,7 @@ def get_geolocation():
 
     # Rename columns
     activities_location = activities_location.rename(columns = {'country': 'activity_country', 'state': 'activity_state', 'city': 'activity_city', 'postal_code': 'activity_postal_code', 'latitude': 'activity_latitude', 'longitude': 'activity_longitude'})
-    
+
     # Select and rearrange columns
     activities_location = activities_location.filter(['filename', 'activity_country', 'activity_state', 'activity_city', 'activity_postal_code', 'activity_latitude', 'activity_longitude'])
 
@@ -175,7 +175,7 @@ tcx_lstrip()
 import_activities()
 
 ## Save activities_points
-activities_points.to_csv(path_or_buf = r'output/activities_points.csv', sep = ',', index = False, encoding='utf-8')
+activities_points.to_csv(path_or_buf = r'output/activities_points.csv', sep = ',', index = False, encoding='utf8')
 
 ## Load activities_points
 # activities_points = pd.read_csv(r'output/activities_points.csv', sep = ',')
@@ -235,10 +235,10 @@ activities = activities.assign(max_speed=activities['max_speed']*3.6,
 activities = activities.sort_values(by=['activity_date', 'activity_type'], ignore_index=True)
 
 ## Save activities
-activities.to_csv(path_or_buf=r'output/activities.csv', sep=',', index=False, encoding='utf-8')
+activities.to_csv(path_or_buf=r'output/activities.csv', sep=',', index=False, encoding='utf8')
 
 ## Load activities
-# activities=pd.read_csv(r'output/activities.csv', sep=',')
+# activities = pd.read_csv(r'output/activities.csv', sep=',')
 
 
 
@@ -392,10 +392,10 @@ folium.LayerControl().add_to(activities_map)
 # Adapted from: https://github.com/andyakrn/activities_heatmap
 for activity_type in activities_points_filtered['activity_type'].unique():
     df_activity_type = activities_points_filtered[activities_points_filtered['activity_type']==activity_type]
-    
+
     for activity in df_activity_type['activity_id'].unique():
             date = df_activity_type[df_activity_type['activity_id']==activity]['datetime'].dt.date.iloc[0]
-             
+
             points = tuple(df_activity_type[df_activity_type['activity_id']==activity]['point'])
             folium.PolyLine(points, color=activity_colors[activity_type],
                             weight=line_weight,
