@@ -8,7 +8,7 @@ This repository aims to be a multi feature tool for locally manipulating Strava'
 - Unzip compressed (.gz) activities files.
 - Remove leading first line blank spaces of .tcx activities files for properly importing it (feature not yet available directly in the ```sweatpy``` package, see [here](https://github.com/GoldenCheetah/sweatpy/issues/99)).
 - Import multiple .fit/.gpx/.tcx activities files at once (without the need of conversion) and create local highly customizable heatmaps with different colors by activity type with the use of the ```folium``` library.
-- Increment your Strava activities metadata by adding country, state, city, postalcode, latitude, longitude geolocation information for each activity given the start recorded point (first non-missing latitude/longitude).
+- Increment your Strava activities metadata by adding country, state, city, postal code, latitude, longitude geolocation information for each activity given the start recorded point (first non-missing latitude/longitude).
 
 Additionally, it is possible to apply a series of filters to select the desired activities before performing the heatmap, such as activities that started inside a bounding box (within 4 corner latitude/longitude points) or activities realized in specific countries or states.
 
@@ -158,7 +158,7 @@ copy_activities(activities_files=activities['filename'])
 
 Unfortunately Folium does not natively export a rendered map to .png.
 
-A workaround is to open the rendered .html Folium map in Chrome, then open Chrome's Inspector, changing the width and high dimensions to 3500 x 3500 px, setting the zoom to 22% and the DPR to 3.0. Then capture a full size screenshot (more on this [here](https://devland.at/a/how-to-take-a-high-dpi-full-page-screenshot-in-google-chrome)).
+A workaround is to open the rendered .html Folium map in Chrome, then open Chrome's Inspector, changing the width and high dimensions to 3500 x 3500 px, setting the zoom to 22% and the DPR to 3.0. Then capture a full size screenshot.
 
 The [canvas.xcf](canvas.xcf) is a Gimp template for printing a canvas in 30 x 30 cm. Its design is similar to [this](https://www.reddit.com/r/bicycling/comments/7hiv41/i_printed_my_strava_heatmap_on_canvas_infos_in/) Reddit discussion:
 
@@ -166,7 +166,7 @@ The [canvas.xcf](canvas.xcf) is a Gimp template for printing a canvas in 30 x 30
 <img src="examples/heatmap_munich_2.png" alt="Heatmap Munich" width=800>
 </p>
 
-The code for calculating the statistics shown in the lower right corner can be found in the end of the [strava-local-heatmap-tool.py](strava-local-heatmap-tool.py) code.
+The statistics shown in the lower right corner are printed once the `heatmap` function is executed.
 
 
 # Documentation
@@ -184,7 +184,7 @@ These repositories have a similar or additional purpose to this project:
 
 [Visualization of activities from Garmin Connect](https://github.com/andyakrn/activities_heatmap): Code for processing activities with .gpx files from Garmin Connect (Python).
 
-[Create artistic visualisations with your Strava exercise data](https://github.com/marcusvolz/strava_py): Code for creating artistic visualisations with your Strava exercise data (Python; a R version is available [here](https://github.com/marcusvolz/strava)).
+[Create artistic visualisations with your Strava exercise data](https://github.com/marcusvolz/strava_py): Code for creating artistic visualizations with your Strava exercise data (Python; a R version is available [here](https://github.com/marcusvolz/strava)).
 
 [strava-offline](https://github.com/liskin/strava-offline): Tool to keep a local mirror of Strava activities for further analysis/processing.
 
@@ -206,5 +206,3 @@ Recommended [settings](https://www.statshunters.com/settings):
 - [x] Hide my data in club heatmaps
 
 [Cultureplot Custom Strava Heatmap Generator](https://cultureplot.com/strava-heatmap/): Connect to Strava to see your activity heatmap. Includes the possibility to filter the activities (by date, time and type) and to customize the map (map type, background color, line color (also by activity), thickness and opacity).
-
-[inonemap](https://inonemap.com): Connect to Strava to show multiple activities in one map.
