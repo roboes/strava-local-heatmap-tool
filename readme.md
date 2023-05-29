@@ -131,7 +131,7 @@ heatmap(activities_df=activities, activities_coordinates_df=activities_coordinat
 #### Parameters
 - `activities_df`: Strava activities *DataFrame*, default: *activities*. Imported from `activities_import()` function.
 - `activities_coordinates_df`: Strava activities coordinates *DataFrame*, default: *activities_coordinates*. Imported from `activities_import()` function.
-- `activity_colors`: *dict*, default: *activity_colors={'Hike': '#00AD43', 'Ride': '#FF5800', 'Run': '#00A6FC'}*. Depending on how many distinct `activity_type` are contained in the `activities` DataFrame, more dictionaries objects need to be added.
+- `activity_colors`: *dict*, default: *{'Hike': '#00AD43', 'Ride': '#FF5800', 'Run': '#00A6FC'}*. Depending on how many distinct `activity_type` are contained in the `activities` DataFrame, more dictionaries objects need to be added.
 - `map_tile`: *str*, options: *'dark_all'*, *'dark_nolabels'*, *'light_all'*, *'light_nolabels'*, *'terrain_background'*, *'toner_lite'* and *'ocean_basemap'*, default: *'dark_all'*.
 - `map_zoom_start`: *int*, default: *12*. Initial zoom level for the map (for more details, check *zoom_start* parameter for [folium.folium.Map documentation](https://python-visualization.github.io/folium/modules.html#folium.folium.Map)).
 - `line_weight`: *float*, default: *1.0*. Stroke width in pixels (for more details, check *weight* parameter for [folium.vector_layers.PolyLine](https://python-visualization.github.io/folium/modules.html#folium.vector_layers.PolyLine)).

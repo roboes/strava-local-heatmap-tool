@@ -393,7 +393,7 @@ def heatmap(*, activities_df, activities_coordinates_df, activity_colors={'Hike'
 
 
 
-# Copy activities files to 'output\activities' folder
+# Copy activities files to 'output/activities' folder
 def copy_activities(*, activities_files):
 
     # Create 'output\activities' folder
