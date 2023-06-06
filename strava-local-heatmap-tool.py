@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2023-05-24
+# Last update: 2023-06-06
 
 
 ###############
@@ -240,10 +240,10 @@ def activities_import():
         .drop(columns=['distance', 'commute'], axis=1)
 
         # Remame columns
-        .rename(columns={'distance_1': 'distance', 'commute_1': 'commute'})
+        .rename(columns={'distance_1': 'distance', 'commute_1': 'commute', '<span_class="translation_missing"_title="translation_missing_en_us_lib_export_portability_exporter_activities_horton_values_total_steps">total_steps<_span>': 'steps'})
 
         # Select columns
-        .filter(items=['activity_date', 'activity_id', 'filename', 'from_upload', 'activity_location_country_code', 'activity_location_country', 'activity_location_state', 'activity_location_city', 'activity_location_postal_code', 'activity_location_latitude', 'activity_location_longitude', 'activity_type', 'commute', 'activity_name', 'activity_description', 'activity_gear', 'elapsed_time', 'moving_time', 'distance', 'max_speed', 'average_speed', 'elevation_gain', 'elevation_loss', 'elevation_low', 'elevation_high', 'max_grade', 'average_grade', 'grade_adjusted_distance', 'max_cadence', 'average_cadence', 'max_heart_rate', 'average_heart_rate', 'max_watts', 'average_watts', 'calories', 'relative_effort', 'weighted_average_power', 'power_count', 'perceived_exertion', 'perceived_relative_effort', 'total_weight_lifted', 'athlete_weight', 'bike_weight'])
+        .filter(items=['activity_date', 'activity_type', 'activity_id', 'activity_name', 'activity_description', 'filename', 'from_upload', 'activity_location_country_code', 'activity_location_country', 'activity_location_state', 'activity_location_city', 'activity_location_postal_code', 'activity_location_latitude', 'activity_location_longitude', 'commute', 'activity_gear', 'elapsed_time', 'moving_time', 'distance', 'max_speed', 'average_speed', 'steps', 'elevation_gain', 'elevation_loss', 'elevation_low', 'elevation_high', 'max_grade', 'average_grade', 'grade_adjusted_distance', 'max_heart_rate', 'average_heart_rate', 'max_cadence', 'average_cadence', 'max_watts', 'average_watts', 'calories', 'relative_effort', 'weighted_average_power', 'power_count', 'perceived_exertion', 'perceived_relative_effort', 'total_weight_lifted', 'athlete_weight', 'bike_weight', 'max_temperature', 'average_temperature'])
 
         # Change dtypes
         .astype(dtype={'activity_id': 'str'})
