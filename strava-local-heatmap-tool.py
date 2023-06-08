@@ -11,7 +11,7 @@ globals().clear()
 
 
 # Import packages
-import datetime
+from datetime import timedelta
 import glob
 import gzip
 import os
@@ -385,7 +385,7 @@ def heatmap(*, activities_df, activities_coordinates_df, activity_colors={'Hike'
     # Summary
     print('Total activities: ' + str(activities['activity_id'].nunique()))
     print('Total distance (in km): ' + str(round(activities['distance'].sum()/1000, 1)))
-    print('Total moving time (in days, hours, minutes, seconds): ' + str(datetime.timedelta(seconds=(activities.assign(moving_time=activities['moving_time']*60)['moving_time']).sum())))
+    print('Total moving time (in days, hours, minutes, seconds): ' + str(timedelta(seconds=(activities.assign(moving_time=activities['moving_time']*60)['moving_time']).sum())))
     print('Total elevation gain (in km): ' + str(round(activities['elevation_gain'].sum()/1000, 1)))
     print('Longest activity (in km): ' + round(activities[activities['distance'] == activities['distance'].max()].filter(items=['distance'])/1000, 1).to_string(index=False, header=False) + ' (' + activities[activities['distance'] == activities['distance'].max()].filter(items=['activity_date']).assign(activity_date = lambda row: row['activity_date'].dt.strftime('%b %Y')).to_string(index=False, header=False) + ')')
     print('Max speed (km/h): ' + str(round(activities['max_speed'].max(), 1)))
