@@ -42,40 +42,40 @@ os.chdir(path=os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava Export'
 # Extract .gz files
 def gz_extract(*, directory='activities'):
 
-    # List of .gz files including full path
-    gz_files = glob.glob(pathname=os.path.join(directory, '*.gz'))
+    # List of files including path
+    files = glob.glob(pathname=os.path.join(directory, '*.gz'), recursive=False)
 
 
-    for gz_file in gz_files:
+    for file in files:
 
-        # Get file name without .gz extension
-        gz_file_name = Path(gz_file).stem
+        # Get file name without extension
+        file_name = Path(file).stem
 
-        # Extract .gz file
-        with gzip.open(gz_file, mode='rb', encoding=None) as file_in, open(os.path.join(os.getcwd(), directory, gz_file_name), mode='wb', encoding=None) as file_out:
+        # Extract file
+        with gzip.open(file, mode='rb', encoding=None) as file_in, open(os.path.join(os.getcwd(), directory, file_name), mode='wb', encoding=None) as file_out:
             shutil.copyfileobj(fsrc=file_in, fdst=file_out)
 
-        # Delete .gz file
-        os.remove(path=gz_file)
+        # Delete file
+        os.remove(path=file)
 
 
 
 # Remove leading first line blank spaces of .tcx activity files
 def tcx_lstrip(*, directory='activities'):
 
-    # List of .tcx files including full path
-    tcx_files = glob.glob(pathname=os.path.join(directory, '*.tcx'))
+    # List of .tcx files including path
+    files = glob.glob(pathname=os.path.join(directory, '*.tcx'), recursive=False)
 
 
     # Remove leading spaces from first row
-    for tcx_file in tcx_files:
+    for file in files:
 
-        with open(tcx_file, mode='rb', encoding=None) as file_in:
-            text = file_in.readlines()
-            text[0] = text[0].lstrip()
+        with open(file, mode='rb', encoding=None) as file_in:
+            file_text = file_in.readlines()
+            file_text[0] = file_text[0].lstrip()
 
-        with open(tcx_file, mode='wb', encoding=None) as file_out:
-            file_out.writelines(text)
+        with open(file, mode='wb', encoding=None) as file_out:
+            file_out.writelines(file_text)
 
 
 
@@ -95,9 +95,9 @@ def activities_coordinates_import():
 
 
     # List of .fit/.gpx/.tcx files to be imported
-    activities_files = glob.glob(pathname=os.path.join('activities', '*.fit'))
-    activities_files.extend(glob.glob(pathname=os.path.join('activities', '*.gpx')))
-    activities_files.extend(glob.glob(pathname=os.path.join('activities', '*.tcx')))
+    activities_files = glob.glob(pathname=os.path.join('activities', '*.fit'), recursive=False)
+    activities_files.extend(glob.glob(pathname=os.path.join('activities', '*.gpx'), recursive=False))
+    activities_files.extend(glob.glob(pathname=os.path.join('activities', '*.tcx'), recursive=False))
 
 
     # Create empty DataFrame
