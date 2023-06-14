@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2023-06-06
+# Last update: 2023-06-14
 
 
 ###############
@@ -46,17 +46,19 @@ def gz_extract(*, directory='activities'):
     files = glob.glob(pathname=os.path.join(directory, '*.gz'), recursive=False)
 
 
-    for file in files:
+    if len(files) > 0:
 
-        # Get file name without extension
-        file_name = Path(file).stem
+        for file in files:
 
-        # Extract file
-        with gzip.open(file, mode='rb', encoding=None) as file_in, open(os.path.join(os.getcwd(), directory, file_name), mode='wb', encoding=None) as file_out:
-            shutil.copyfileobj(fsrc=file_in, fdst=file_out)
+            # Get file name without extension
+            file_name = Path(file).stem
 
-        # Delete file
-        os.remove(path=file)
+            # Extract file
+            with gzip.open(file, mode='rb', encoding=None) as file_in, open(os.path.join(os.getcwd(), directory, file_name), mode='wb', encoding=None) as file_out:
+                shutil.copyfileobj(fsrc=file_in, fdst=file_out)
+
+            # Delete file
+            os.remove(path=file)
 
 
 
@@ -67,15 +69,16 @@ def tcx_lstrip(*, directory='activities'):
     files = glob.glob(pathname=os.path.join(directory, '*.tcx'), recursive=False)
 
 
-    # Remove leading spaces from first row
-    for file in files:
+    if len(files) > 0:
 
-        with open(file, mode='rb', encoding=None) as file_in:
-            file_text = file_in.readlines()
-            file_text[0] = file_text[0].lstrip()
+        for file in files:
 
-        with open(file, mode='wb', encoding=None) as file_out:
-            file_out.writelines(file_text)
+            with open(path=file, mode='rb', encoding=None) as file_in:
+                file_text = file_in.readlines()
+                file_text[0] = file_text[0].lstrip()
+
+            with open(path=file, mode='wb', encoding=None) as file_out:
+                file_out.writelines(file_text)
 
 
 
@@ -113,8 +116,8 @@ def activities_coordinates_import():
 
             # Create 'filename' column
             df['filename'] = activities_file
-            df['filename'] = df['filename'].str.replace(pat=r'^activities', repl=r'', regex=True)
-            df['filename'] = df['filename'].str.replace(pat=r'^/[/]?|\\[\\]?', repl=r'', regex=True)
+            df['filename'] = df['filename'].replace(to_replace=r'^activities', value=r'', regex=True)
+            df['filename'] = df['filename'].replace(to_replace=r'^/[/]?|\\[\\]?', value=r'', regex=True)
 
             # Concatenate DataFrame
             activities_coordinates = pd.concat(objs=[activities_coordinates, df], axis=0, ignore_index=False, sort=False)
@@ -231,7 +234,7 @@ def activities_import():
         .clean_names()
 
         # Clean 'filename' column
-        .assign(filename = lambda row: row['filename'].str.replace(pat=r'^activities/|\.gz$', repl='', regex=True))
+        .assign(filename = lambda row: row['filename'].replace(to_replace=r'^activities/|\.gz$', value='', regex=True))
 
         # Left join 'activities_geolocation'
         .merge(activities_geolocation, how='left', on=['filename'], indicator=False)
