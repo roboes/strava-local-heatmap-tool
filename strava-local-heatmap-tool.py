@@ -73,11 +73,11 @@ def tcx_lstrip(*, directory='activities'):
 
         for file in files:
 
-            with open(path=file, mode='rb', encoding=None) as file_in:
+            with open(file, mode='rb', encoding=None) as file_in:
                 file_text = file_in.readlines()
                 file_text[0] = file_text[0].lstrip()
 
-            with open(path=file, mode='wb', encoding=None) as file_out:
+            with open(file, mode='wb', encoding=None) as file_out:
                 file_out.writelines(file_text)
 
 
@@ -203,7 +203,7 @@ def activities_geolocator(*, activities_coordinates_df):
 
 
 
-# Import Strava activities
+# Import Strava activities to DataFrame
 def activities_import():
 
     """
@@ -414,7 +414,7 @@ def copy_activities(*, activities_files):
 # Strava Local Heatmap Tool
 ###########################
 
-# Import Strava activities
+# Import Strava activities to DataFrame
 activities_import()
 
 
