@@ -188,7 +188,7 @@ def activities_geolocator(*, activities_coordinates_df):
     activities_geolocation = (activities_geolocation
 
         # Remove columns
-        .drop(columns=['datetime', 'activity_geolocation'], axis=1)
+        .drop(columns=['datetime', 'activity_geolocation'], axis=1, errors='ignore')
 
         # Select columns
         .filter(items=['filename', 'activity_location_country_code', 'activity_location_country', 'activity_location_state', 'activity_location_city', 'activity_location_postal_code', 'activity_location_latitude', 'activity_location_longitude'])
@@ -240,7 +240,7 @@ def activities_import():
         .merge(activities_geolocation, how='left', on=['filename'], indicator=False)
 
         # Remove columns
-        .drop(columns=['distance', 'commute'], axis=1)
+        .drop(columns=['distance', 'commute'], axis=1, errors='ignore')
 
         # Remame columns
         .rename(columns={'distance_1': 'distance', 'commute_1': 'commute', '<span_class="translation_missing"_title="translation_missing_en_us_lib_export_portability_exporter_activities_horton_values_total_steps">total_steps<_span>': 'steps'})
@@ -322,7 +322,7 @@ def heatmap(*, activities_df, activities_coordinates_df, activity_colors={'Hike'
         .merge(activities_df.filter(items=['filename', 'activity_id', 'activity_type', 'distance']), how='left', on=['filename'], indicator=False)
 
         # Remove columns
-        .drop(columns=['filename'], axis=1)
+        .drop(columns=['filename'], axis=1, errors='ignore')
 
     )
 
