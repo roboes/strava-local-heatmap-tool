@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2023-05-24
+# Last update: 2023-06-14
 
 
 ###############
@@ -11,7 +11,7 @@ globals().clear()
 
 
 # Import packages
-import datetime
+from datetime import timedelta
 import glob
 import gzip
 import os
@@ -42,40 +42,43 @@ os.chdir(path=os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava Export'
 # Extract .gz files
 def gz_extract(*, directory='activities'):
 
-    # List of .gz files including full path
-    gz_files = glob.glob(pathname=os.path.join(directory, '*.gz'))
+    # List of files including path
+    files = glob.glob(pathname=os.path.join(directory, '*.gz'), recursive=False)
 
 
-    for gz_file in gz_files:
+    if len(files) > 0:
 
-        # Get file name without .gz extension
-        gz_file_name = Path(gz_file).stem
+        for file in files:
 
-        # Extract .gz file
-        with gzip.open(gz_file, mode='rb', encoding=None) as file_in, open(os.path.join(os.getcwd(), directory, gz_file_name), mode='wb', encoding=None) as file_out:
-            shutil.copyfileobj(fsrc=file_in, fdst=file_out)
+            # Get file name without extension
+            file_name = Path(file).stem
 
-        # Delete .gz file
-        os.remove(path=gz_file)
+            # Extract file
+            with gzip.open(file, mode='rb', encoding=None) as file_in, open(os.path.join(os.getcwd(), directory, file_name), mode='wb', encoding=None) as file_out:
+                shutil.copyfileobj(fsrc=file_in, fdst=file_out)
+
+            # Delete file
+            os.remove(path=file)
 
 
 
 # Remove leading first line blank spaces of .tcx activity files
 def tcx_lstrip(*, directory='activities'):
 
-    # List of .tcx files including full path
-    tcx_files = glob.glob(pathname=os.path.join(directory, '*.tcx'))
+    # List of .tcx files including path
+    files = glob.glob(pathname=os.path.join(directory, '*.tcx'), recursive=False)
 
 
-    # Remove leading spaces from first row
-    for tcx_file in tcx_files:
+    if len(files) > 0:
 
-        with open(tcx_file, mode='rb', encoding=None) as file_in:
-            text = file_in.readlines()
-            text[0] = text[0].lstrip()
+        for file in files:
 
-        with open(tcx_file, mode='wb', encoding=None) as file_out:
-            file_out.writelines(text)
+            with open(file, mode='rb', encoding=None) as file_in:
+                file_text = file_in.readlines()
+                file_text[0] = file_text[0].lstrip()
+
+            with open(file, mode='wb', encoding=None) as file_out:
+                file_out.writelines(file_text)
 
 
 
@@ -95,9 +98,9 @@ def activities_coordinates_import():
 
 
     # List of .fit/.gpx/.tcx files to be imported
-    activities_files = glob.glob(pathname=os.path.join('activities', '*.fit'))
-    activities_files.extend(glob.glob(pathname=os.path.join('activities', '*.gpx')))
-    activities_files.extend(glob.glob(pathname=os.path.join('activities', '*.tcx')))
+    activities_files = glob.glob(pathname=os.path.join('activities', '*.fit'), recursive=False)
+    activities_files.extend(glob.glob(pathname=os.path.join('activities', '*.gpx'), recursive=False))
+    activities_files.extend(glob.glob(pathname=os.path.join('activities', '*.tcx'), recursive=False))
 
 
     # Create empty DataFrame
@@ -113,8 +116,8 @@ def activities_coordinates_import():
 
             # Create 'filename' column
             df['filename'] = activities_file
-            df['filename'] = df['filename'].str.replace(pat=r'^activities', repl=r'', regex=True)
-            df['filename'] = df['filename'].str.replace(pat=r'^/[/]?|\\[\\]?', repl=r'', regex=True)
+            df['filename'] = df['filename'].replace(to_replace=r'^activities', value=r'', regex=True)
+            df['filename'] = df['filename'].replace(to_replace=r'^/[/]?|\\[\\]?', value=r'', regex=True)
 
             # Concatenate DataFrame
             activities_coordinates = pd.concat(objs=[activities_coordinates, df], axis=0, ignore_index=False, sort=False)
@@ -185,7 +188,7 @@ def activities_geolocator(*, activities_coordinates_df):
     activities_geolocation = (activities_geolocation
 
         # Remove columns
-        .drop(columns=['datetime', 'activity_geolocation'], axis=1)
+        .drop(columns=['datetime', 'activity_geolocation'], axis=1, errors='ignore')
 
         # Select columns
         .filter(items=['filename', 'activity_location_country_code', 'activity_location_country', 'activity_location_state', 'activity_location_city', 'activity_location_postal_code', 'activity_location_latitude', 'activity_location_longitude'])
@@ -200,7 +203,7 @@ def activities_geolocator(*, activities_coordinates_df):
 
 
 
-# Import Strava activities
+# Import Strava activities to DataFrame
 def activities_import():
 
     """
@@ -231,19 +234,19 @@ def activities_import():
         .clean_names()
 
         # Clean 'filename' column
-        .assign(filename = lambda row: row['filename'].str.replace(pat=r'^activities/|\.gz$', repl='', regex=True))
+        .assign(filename = lambda row: row['filename'].replace(to_replace=r'^activities/|\.gz$', value='', regex=True))
 
         # Left join 'activities_geolocation'
         .merge(activities_geolocation, how='left', on=['filename'], indicator=False)
 
         # Remove columns
-        .drop(columns=['distance', 'commute'], axis=1)
+        .drop(columns=['distance', 'commute'], axis=1, errors='ignore')
 
         # Remame columns
-        .rename(columns={'distance_1': 'distance', 'commute_1': 'commute'})
+        .rename(columns={'distance_1': 'distance', 'commute_1': 'commute', '<span_class="translation_missing"_title="translation_missing_en_us_lib_export_portability_exporter_activities_horton_values_total_steps">total_steps<_span>': 'steps'})
 
         # Select columns
-        .filter(items=['activity_date', 'activity_id', 'filename', 'from_upload', 'activity_location_country_code', 'activity_location_country', 'activity_location_state', 'activity_location_city', 'activity_location_postal_code', 'activity_location_latitude', 'activity_location_longitude', 'activity_type', 'commute', 'activity_name', 'activity_description', 'activity_gear', 'elapsed_time', 'moving_time', 'distance', 'max_speed', 'average_speed', 'elevation_gain', 'elevation_loss', 'elevation_low', 'elevation_high', 'max_grade', 'average_grade', 'grade_adjusted_distance', 'max_cadence', 'average_cadence', 'max_heart_rate', 'average_heart_rate', 'max_watts', 'average_watts', 'calories', 'relative_effort', 'weighted_average_power', 'power_count', 'perceived_exertion', 'perceived_relative_effort', 'total_weight_lifted', 'athlete_weight', 'bike_weight'])
+        .filter(items=['activity_date', 'activity_type', 'activity_id', 'activity_name', 'activity_description', 'filename', 'from_upload', 'activity_location_country_code', 'activity_location_country', 'activity_location_state', 'activity_location_city', 'activity_location_postal_code', 'activity_location_latitude', 'activity_location_longitude', 'commute', 'activity_gear', 'elapsed_time', 'moving_time', 'distance', 'max_speed', 'average_speed', 'steps', 'elevation_gain', 'elevation_loss', 'elevation_low', 'elevation_high', 'max_grade', 'average_grade', 'grade_adjusted_distance', 'max_heart_rate', 'average_heart_rate', 'max_cadence', 'average_cadence', 'max_watts', 'average_watts', 'calories', 'relative_effort', 'weighted_average_power', 'power_count', 'perceived_exertion', 'perceived_relative_effort', 'total_weight_lifted', 'athlete_weight', 'bike_weight', 'max_temperature', 'average_temperature'])
 
         # Change dtypes
         .astype(dtype={'activity_id': 'str'})
@@ -319,7 +322,7 @@ def heatmap(*, activities_df, activities_coordinates_df, activity_colors={'Hike'
         .merge(activities_df.filter(items=['filename', 'activity_id', 'activity_type', 'distance']), how='left', on=['filename'], indicator=False)
 
         # Remove columns
-        .drop(columns=['filename'], axis=1)
+        .drop(columns=['filename'], axis=1, errors='ignore')
 
     )
 
@@ -385,7 +388,7 @@ def heatmap(*, activities_df, activities_coordinates_df, activity_colors={'Hike'
     # Summary
     print('Total activities: ' + str(activities['activity_id'].nunique()))
     print('Total distance (in km): ' + str(round(activities['distance'].sum()/1000, 1)))
-    print('Total moving time (in days, hours, minutes, seconds): ' + str(datetime.timedelta(seconds=(activities.assign(moving_time=activities['moving_time']*60)['moving_time']).sum())))
+    print('Total moving time (in days, hours, minutes, seconds): ' + str(timedelta(seconds=(activities.assign(moving_time=activities['moving_time']*60)['moving_time']).sum())))
     print('Total elevation gain (in km): ' + str(round(activities['elevation_gain'].sum()/1000, 1)))
     print('Longest activity (in km): ' + round(activities[activities['distance'] == activities['distance'].max()].filter(items=['distance'])/1000, 1).to_string(index=False, header=False) + ' (' + activities[activities['distance'] == activities['distance'].max()].filter(items=['activity_date']).assign(activity_date = lambda row: row['activity_date'].dt.strftime('%b %Y')).to_string(index=False, header=False) + ')')
     print('Max speed (km/h): ' + str(round(activities['max_speed'].max(), 1)))
@@ -411,7 +414,7 @@ def copy_activities(*, activities_files):
 # Strava Local Heatmap Tool
 ###########################
 
-# Import Strava activities
+# Import Strava activities to DataFrame
 activities_import()
 
 
