@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2023-06-14
+# Last update: 2023-07-17
 
 
 ###############
@@ -23,7 +23,6 @@ from dateutil import parser
 import folium
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
-from janitor import clean_names
 import pandas as pd
 from plotnine import *
 import sweat
@@ -228,10 +227,19 @@ def activities_import():
 
 
     # Import Strava activities
-    activities = (pd.read_csv(filepath_or_buffer='activities.csv', sep=',', header=0, index_col=None, skiprows=0, skipfooter=0, dtype=None, engine='python', encoding='utf8')
+    activities = pd.read_csv(filepath_or_buffer='activities.csv', sep=',', header=0, index_col=None, skiprows=0, skipfooter=0, dtype=None, engine='python', encoding='utf8')
 
-        # Rename columns
-        .clean_names()
+
+    # Rename columns
+    activities.columns = (activities.columns
+        .str.strip()
+        .str.lower()
+        .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
+        .str.replace(pat=r':', repl=r'', regex=True)
+    )
+
+
+    activities = (activities
 
         # Clean 'filename' column
         .assign(filename = lambda row: row['filename'].replace(to_replace=r'^activities/|\.gz$', value='', regex=True))

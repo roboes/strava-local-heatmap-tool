@@ -52,7 +52,7 @@ In essence, the process is as follows:
 ## Python dependencies
 
 ```.ps1
-python -m pip install folium geopy pandas plotnine pyjanitor python-dateutil sweat
+python -m pip install folium geopy pandas plotnine python-dateutil sweat
 ```
 
 
