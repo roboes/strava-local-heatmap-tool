@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2023-07-17
+# Last update: 2023-07-18
 
 
 ###############
@@ -268,7 +268,7 @@ def activities_import():
             average_speed = lambda row: row['average_speed']*3.6
         )
 
-        # Rearrange columns
+        # Rearrange rows
         .sort_values(by=['activity_date', 'activity_type'], ignore_index=True)
 
     )
