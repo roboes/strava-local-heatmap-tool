@@ -1,0 +1,152 @@
+## Pre-commit configuration
+# Last update: 2023-07-25
+
+
+# Save this file to '/.pre-commit-config.yaml'
+
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-ast
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-vcs-permalinks
+      - id: check-xml
+      - id: check-yaml
+      - id: debug-statements
+      - id: destroyed-symlinks
+      # - id: detect-aws-credentials
+      - id: detect-private-key
+      - id: double-quote-string-fixer
+      - id: end-of-file-fixer # It may conflict with python generated .json files
+      - id: file-contents-sorter
+      - id: fix-byte-order-marker
+      - id: fix-encoding-pragma
+        args: ["--remove"]
+      - id: forbid-new-submodules
+      # - id: forbid-submodules
+      #   args: ['--fix=lf']
+      - id: mixed-line-ending
+        args: ["--fix=no"]
+      - id: name-tests-test
+      # - id: no-commit-to-branch
+      #   args: [--branch, staging]
+      # - id: pretty-format-json # Not, since it decodes utf-8
+      #   args: ["--autofix"]
+      - id: requirements-txt-fixer
+      # - id: sort-simple-yaml
+      - id: trailing-whitespace
+
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.35.0
+    hooks:
+      - id: markdownlint
+        args: ["--disable", "MD013"]
+
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.278
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix, "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
+
+
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.0.0
+    hooks:
+      - id: add-trailing-comma
+
+
+  - repo: https://github.com/psf/black
+    rev: 23.7.0 # Without leading "v"
+    hooks:
+      - id: black
+        args: [--skip-string-normalization]
+
+
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: python-check-blanket-noqa
+      # - id: python-check-blanket-type-ignore
+      - id: python-check-mock-methods
+      - id: python-no-eval
+      - id: python-no-log-warn
+      - id: python-use-type-annotations
+      - id: rst-backticks
+      - id: rst-directive-colons
+      - id: rst-inline-touching-normal
+      - id: text-unicode-replacement-char
+
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.9.0
+    hooks:
+      - id: pyupgrade
+        args: ["--py311-plus"]
+
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0 # Without leading "v"
+    hooks:
+      - id: flake8
+        additional_dependencies:
+
+          # https://github.com/DmytroLitvinov/awesome-flake8-extensions
+
+          # Bugs
+          - flake8-bugbear
+          - flake8-encodings
+          - flake8-secure-coding-standard
+          - flake8-warnings
+
+          # Clean code
+          - flake8-comprehensions
+          - flake8-simplify
+          # - flake8-eradicate
+          - flake8-commas
+
+          # Comments
+          - flake8-comments
+
+          # Docstrings
+          - flake8-docstrings
+          - flake8-rst-docstrings
+
+          # Limitations
+          - flake8-blind-except
+          - flake8-logging-format
+          # - flake8-print
+
+          # Naming
+          - flake8-builtins
+
+          # Security
+          - flake8-bandit
+
+          # Testing
+          - flake8-assertive
+
+        args: ["--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,S105,S110,S310,S410,SCS109,SIM105,W503,W504"]
+
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.5
+    hooks:
+      - id: codespell
+
+
+default_language_version:
+  python: python3

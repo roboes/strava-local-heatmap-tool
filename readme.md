@@ -16,13 +16,13 @@ Although similar projects already exist (see [here](#see-also)), some of the fea
 
 ## Output
 
-Munich Heatmap (rides in orange; runs in blue) 
+Munich Heatmap (rides in orange; runs in blue)
 
 <p align="center">
 <img src="examples/heatmap_munich_1.png" alt="Heatmap Munich" width=800>
 </p>
 
-Vienna Heatmap (rides in orange; runs in blue) 
+Vienna Heatmap (rides in orange; runs in blue)
 
 <p align="center">
 <img src="examples/heatmap_vienna_1.png" alt="Heatmap Vienna" width=800>
@@ -37,7 +37,7 @@ Map interaction (option to navigate through the map, click in a line and get an 
 
 # Usage
 
-## Bulk export your Strava data 
+## Bulk export your Strava data
 
 Strava's bulk export process documentation can be found [here](https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export#Bulk).
 
@@ -52,7 +52,7 @@ In essence, the process is as follows:
 ## Python dependencies
 
 ```.ps1
-python -m pip install folium geopy pandas plotnine pyjanitor python-dateutil sweat
+python -m pip install folium geopy pandas plotnine python-dateutil sweat
 ```
 
 
@@ -199,10 +199,10 @@ These repositories have a similar or additional purpose to this project:
 
 ## External links
 
-[StatsHunters](https://www.statshunters.com): Connect your Strava account and show all your sport activities and added photos on one map.   
+[StatsHunters](https://www.statshunters.com): Connect your Strava account and show all your sport activities and added photos on one map.
 
-Recommended [settings](https://www.statshunters.com/settings):  
-- [x] Receive monthly statistics by email  
+Recommended [settings](https://www.statshunters.com/settings):
+- [x] Receive monthly statistics by email
 - [x] Hide my data in club heatmaps
 
 [Cultureplot Custom Strava Heatmap Generator](https://cultureplot.com/strava-heatmap/): Connect to Strava to see your activity heatmap. Includes the possibility to filter the activities (by date, time and type) and to customize the map (map type, background color, line color (also by activity), thickness and opacity).
