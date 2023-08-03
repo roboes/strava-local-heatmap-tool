@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2023-07-20
+# Last update: 2023-08-03
 
 
 """About: Create Strava heatmaps locally using Folium library in Python."""
@@ -461,7 +461,7 @@ def heatmap(
     activities_df = (
         activities_df
         # Remove activities without latitude/longitude coordinates
-        .query('filename.notnull()')
+        .query('filename.notna()')
     )
 
     activities_coordinates_df = (
@@ -649,7 +649,7 @@ activities_import()
 
 # Check for activities without activity_gear
 (
-    activities.query('activity_gear.isnull()')
+    activities.query('activity_gear.isna()')
     .groupby(
         by=['activity_type'],
         axis=0,
