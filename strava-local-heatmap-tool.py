@@ -174,7 +174,7 @@ def activities_coordinates_import(*, activities_directory):
 
     activities_coordinates = activities_coordinates.filter(
         items=['datetime', 'filename', 'latitude', 'longitude'],
-    ).sort_values(by=['filename'], ignore_index=True)
+    )
 
     # Get elapsed time (in seconds)
     # activities_coordinates['elapsed_time'] = activities_coordinates.groupby(by=['filename'], axis=0, level=None, as_index=False, sort=True, dropna=True)['datetime'].transform(lambda row: (row.max() - row.min()).total_seconds())
@@ -523,6 +523,14 @@ def heatmap(
         # Remove activities without latitude/longitude coordinates
         .query('filename.notna()')
     )
+
+    if 'distance' not in activities_df.columns:
+        activities_df = activities_df.assign(distance=0)
+
+    if 'datetime' not in activities_coordinates_df.columns:
+        activities_coordinates_df = activities_coordinates_df.assign(
+            datetime=pd.Timestamp.now(tz='UTC').replace(tzinfo=None),
+        )
 
     activities_coordinates_df = (
         activities_coordinates_df
