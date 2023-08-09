@@ -70,11 +70,11 @@ def tcx_lstrip(*, directory='activities'):
 
     if len(files) > 0:
         for file in files:
-            with open(file, encoding='utf8') as file_in:
+            with open(file, encoding='utf-8') as file_in:
                 file_text = file_in.readlines()
                 file_text[0] = file_text[0].lstrip()
 
-            with open(file, mode='w', encoding='utf8') as file_out:
+            with open(file, mode='w', encoding='utf-8') as file_out:
                 file_out.writelines(file_text)
 
 
@@ -354,7 +354,7 @@ def activities_import(*, activities_directory, activities_file, skip_geolocation
         skipfooter=0,
         dtype=None,
         engine='python',
-        encoding='utf8',
+        encoding='utf-8',
     )
 
     # Rename columns
