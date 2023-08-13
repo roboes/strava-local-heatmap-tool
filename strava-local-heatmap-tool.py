@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2023-08-07
+# Last update: 2023-08-13
 
 
 """About: Create Strava heatmaps locally using Folium library in Python."""
@@ -19,6 +19,8 @@ import glob
 import gzip
 import os
 from pathlib import Path
+
+# import re
 import shutil
 import webbrowser
 
@@ -705,6 +707,58 @@ def copy_activities(*, activities_files):
         )
 
 
+# Rename activities files
+def activities_file_rename(
+    *,
+    activities_geolocation_df,
+    activities_directory='activities',
+):
+    # List of .fit/.gpx/.tcx files to be renamed
+    activities_files = glob.glob(
+        pathname=os.path.join(activities_directory, '*.fit'),
+        recursive=False,
+    )
+    activities_files.extend(
+        glob.glob(
+            pathname=os.path.join(activities_directory, '*.gpx'),
+            recursive=False,
+        ),
+    )
+    activities_files.extend(
+        glob.glob(
+            pathname=os.path.join(activities_directory, '*.tcx'),
+            recursive=False,
+        ),
+    )
+
+    # New file name
+    activities_geolocation_df['reference'] = activities_geolocation_df[
+        [
+            'activity_location_country',
+            'activity_location_state',
+            'activity_location_city',
+            'filename',
+        ]
+    ].apply(lambda row: '-'.join(column for column in row if pd.notna(column)), axis=1)
+    activities_geolocation_df['reference'] = activities_geolocation_df[
+        'reference'
+    ].replace(to_replace=r'/', value=r'-', regex=True)
+
+    references = dict(
+        activities_geolocation_df.dropna(subset=['filename']).set_index('filename')[
+            'reference'
+        ],
+    )
+
+    for activity_file in activities_files:
+        activity_file = Path(activity_file)
+
+        filename_new = references.get(activity_file.name, activity_file.stem)
+        activity_file.rename(
+            activity_file.with_name(f'{filename_new}{activity_file.suffix}'),
+        )
+
+
 ###########################
 # Strava Local Heatmap Tool
 ###########################
@@ -896,7 +950,7 @@ activities = activities_filter(
 heatmap(
     activities_df=activities,
     activities_coordinates_df=activities_coordinates,
-    activity_colors={'Hike': '#00AD43', 'Ride': '#FF5800', 'Run': '#00A6FC'},
+    activity_colors={'Hike': '#FF0000', 'Ride': '#00A3E0', 'Run': '#FF0000'},
     map_tile='dark_all',
     map_zoom_start=12,
     line_weight=1.0,
@@ -907,3 +961,14 @@ heatmap(
 
 # Copy activities files to 'output\activities' folder
 # copy_activities(activities_files=activities['filename'])
+
+
+# Import .fit/.gpx/.tcx activity files into a DataFrame
+# activities_coordinates = activities_coordinates_import(activities_directory='activities')
+
+
+# Get geolocation for .fit/.gpx/.tcx activity files given the start recorded coordinates (first non-missing latitude/longitude)
+# activities_geolocation = activities_geolocator(activities_coordinates_df=activities_coordinates, skip_geolocation=False)
+
+
+# activities_file_rename(activities_geolocation_df=activities_geolocation, activities_directory='activities')
