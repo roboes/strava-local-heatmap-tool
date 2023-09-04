@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2023-09-03
+# Last update: 2023-09-04
 
 
 """About: Create Strava heatmaps locally using Folium library in Python."""
@@ -80,6 +80,20 @@ def tcx_lstrip(*, directory):
             if file_text[0] != file_text_0:
                 with open(file=file, mode='w', encoding='utf-8') as file_out:
                     file_out.writelines(file_text)
+
+
+def rename_columns(*, df):
+    df.columns = (
+        df.columns.astype(str)
+        .str.strip()
+        .str.lower()
+        .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
+        .str.replace(pat=r':', repl=r'', regex=True)
+        .str.replace(pat=r'__', repl=r'_', regex=True)
+    )
+
+    # Return objects
+    return df
 
 
 # def read_fit(*, activities_file):
@@ -359,14 +373,7 @@ def activities_import(*, activities_folder, activities_file, skip_geolocation=Fa
     )
 
     # Rename columns
-    activities_df.columns = (
-        activities_df.columns.astype(str)
-        .astype(str)
-        .str.strip()
-        .str.lower()
-        .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
-        .str.replace(pat=r':', repl=r'', regex=True)
-    )
+    activities_df = rename_columns(df=activities_df)
 
     activities_df = (
         activities_df
