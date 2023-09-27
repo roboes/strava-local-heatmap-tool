@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2023-07-25
+# Last update: 2023-09-03
 
 
 # Save this file to '/.pre-commit-config.yaml'
@@ -60,7 +60,7 @@ repos:
     rev: v0.0.278
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix, "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
+        args: [--fix, --exit-non-zero-on-fix, "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
 
 
   - repo: https://github.com/asottile/add-trailing-comma
@@ -139,7 +139,7 @@ repos:
           # Testing
           - flake8-assertive
 
-        args: ["--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,S105,S110,S310,S410,SCS109,SIM105,W503,W504"]
+        args: ["--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,F821,S105,S110,S310,S410,SCS109,SIM105,W503,W504"]
 
 
   - repo: https://github.com/codespell-project/codespell
