@@ -237,7 +237,6 @@ def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
                 ),
                 exactly_one=True,
                 addressdetails=True,
-                extratags=False,
                 namedetails=True,
                 language='en',
                 timeout=None,
