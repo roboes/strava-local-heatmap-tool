@@ -204,7 +204,11 @@ def activities_coordinates_import(*, activities_folder):
 def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
     """Get geolocation for .fit/.gpx/.tcx activity files given the start recorded coordinates (first non-missing latitude/longitude)."""
     # Settings and variables
-    geolocator = Nominatim(domain='nominatim.openstreetmap.org', scheme='https', user_agent='strava-local-heatmap-tool')
+    geolocator = Nominatim(
+        domain='nominatim.openstreetmap.org',
+        scheme='https',
+        user_agent='strava-local-heatmap-tool',
+    )
     reverse = RateLimiter(func=geolocator.reverse, min_delay_seconds=1)
 
     # Create 'activities_geolocation' DataFrame
