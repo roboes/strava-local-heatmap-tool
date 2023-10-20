@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2023-09-04
+# Last update: 2023-10-18
 
 
 """About: Create Strava heatmaps locally using Folium library in Python."""
@@ -204,8 +204,12 @@ def activities_coordinates_import(*, activities_folder):
 def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
     """Get geolocation for .fit/.gpx/.tcx activity files given the start recorded coordinates (first non-missing latitude/longitude)."""
     # Settings and variables
-    geolocator = Nominatim(user_agent='strava-local-heatmap-tool')
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+    geolocator = Nominatim(
+        domain='nominatim.openstreetmap.org',
+        scheme='https',
+        user_agent='strava-local-heatmap-tool',
+    )
+    reverse = RateLimiter(func=geolocator.reverse, min_delay_seconds=1)
 
     # Create 'activities_geolocation' DataFrame
     activities_geolocation = (
@@ -231,14 +235,14 @@ def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
         # Create 'activity_geolocation' column
         activities_geolocation['activity_geolocation'] = activities_geolocation.apply(
             lambda row: reverse(
-                '{}, {}'.format(
+                query='{}, {}'.format(
                     row['activity_location_latitude'],
                     row['activity_location_longitude'],
                 ),
-                language='en',
                 exactly_one=True,
                 addressdetails=True,
                 namedetails=True,
+                language='en',
                 timeout=None,
             )
             if pd.notna(row['activity_location_latitude'])

@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2023-09-03
+# Last update: 2023-10-05
 
 
 # Save this file to '/.pre-commit-config.yaml'
@@ -7,7 +7,7 @@
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=500"]
@@ -50,27 +50,27 @@ repos:
 
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.35.0
+    rev: v0.37.0
     hooks:
       - id: markdownlint
         args: ["--disable", "MD013"]
 
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.278
+    rev: v0.1.0
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
 
 
   - repo: https://github.com/asottile/add-trailing-comma
-    rev: v3.0.0
+    rev: v3.1.0
     hooks:
       - id: add-trailing-comma
 
 
   - repo: https://github.com/psf/black
-    rev: 23.7.0 # Without leading "v"
+    rev: 23.10.0 # Without leading "v"
     hooks:
       - id: black
         args: [--skip-string-normalization]
@@ -92,14 +92,14 @@ repos:
 
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.9.0
+    rev: v3.15.0
     hooks:
       - id: pyupgrade
-        args: ["--py311-plus"]
+        args: ["--py312-plus"]
 
 
   - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0 # Without leading "v"
+    rev: 6.1.0 # Without leading "v"
     hooks:
       - id: flake8
         additional_dependencies:
@@ -143,10 +143,10 @@ repos:
 
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.5
+    rev: v2.2.6
     hooks:
       - id: codespell
-
+        exclude: 'at-post-letter-template.py|terminvereinbarung-munich.py'
 
 default_language_version:
   python: python3
