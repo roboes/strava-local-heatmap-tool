@@ -1,5 +1,5 @@
 ## Pre-commit Workflow
-# Last update: 2023-07-19
+# Last update: 2023-11-13
 
 
 # Save this file to '/.github/workflows/pre-commit-workflow.yaml'
@@ -31,13 +31,14 @@ jobs:
     steps:
 
       - name: Checkout repository content - https://github.com/actions/checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
 
-      - name: Setup Python - https://github.com/actions/checkout
+      - name: Setup Python - https://github.com/actions/setup-python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x' #  Latest stable major version of Python
+          # python-version: '3.x' #  Latest stable major version of Python
+          python-version: '3.11'
 
 
       - name: Install Python dependencies

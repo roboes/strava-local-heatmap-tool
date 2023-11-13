@@ -490,7 +490,7 @@ def activities_filter(
     if activity_location_state is not None:
         activities_df = activities_df.query(
             'activity_location_state.isin(@activity_location_state)',
-        )
+        ).reset_index(level=None, drop=True)
 
     # Filter activities inside a bounding box
     if all(value is not None for value in bounding_box.values()):

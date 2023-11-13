@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2023-10-05
+# Last update: 2023-11-13
 
 
 # Save this file to '/.pre-commit-config.yaml'
@@ -10,7 +10,7 @@ repos:
     rev: v4.5.0
     hooks:
       - id: check-added-large-files
-        args: ["--maxkb=500"]
+        args: ['--maxkb=500']
       - id: check-ast
       - id: check-builtin-literals
       - id: check-case-conflict
@@ -33,34 +33,48 @@ repos:
       - id: file-contents-sorter
       - id: fix-byte-order-marker
       - id: fix-encoding-pragma
-        args: ["--remove"]
+        args: ['--remove']
       - id: forbid-new-submodules
       # - id: forbid-submodules
       #   args: ['--fix=lf']
       - id: mixed-line-ending
-        args: ["--fix=no"]
+        args: ['--fix=lf']
       - id: name-tests-test
       # - id: no-commit-to-branch
       #   args: [--branch, staging]
       # - id: pretty-format-json # Not, since it decodes utf-8
-      #   args: ["--autofix"]
+      #   args: ['--autofix']
       - id: requirements-txt-fixer
       # - id: sort-simple-yaml
       - id: trailing-whitespace
+
+
+  - repo: https://github.com/thibaudcolas/curlylint
+    rev: v0.13.1
+    hooks:
+      - id: curlylint
+
+
+  - repo: https://github.com/rtts/djhtml
+    rev: 3.0.6 # Without leading 'v'
+    hooks:
+      - id: djhtml
+      - id: djcss
+      - id: djjs
 
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.37.0
     hooks:
       - id: markdownlint
-        args: ["--disable", "MD013"]
+        args: ['--disable', 'MD013']
 
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.1.0
+    rev: v0.1.5
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix, "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
+        args: [--fix, --exit-non-zero-on-fix, '--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105'] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
 
 
   - repo: https://github.com/asottile/add-trailing-comma
@@ -70,7 +84,7 @@ repos:
 
 
   - repo: https://github.com/psf/black
-    rev: 23.10.0 # Without leading "v"
+    rev: 23.11.0 # Without leading 'v'
     hooks:
       - id: black
         args: [--skip-string-normalization]
@@ -95,11 +109,11 @@ repos:
     rev: v3.15.0
     hooks:
       - id: pyupgrade
-        args: ["--py312-plus"]
+        args: ['--py312-plus']
 
 
   - repo: https://github.com/pycqa/flake8
-    rev: 6.1.0 # Without leading "v"
+    rev: 6.1.0 # Without leading 'v'
     hooks:
       - id: flake8
         additional_dependencies:
@@ -139,7 +153,7 @@ repos:
           # Testing
           - flake8-assertive
 
-        args: ["--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,F821,S105,S110,S310,S410,SCS109,SIM105,W503,W504"]
+        args: ['--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,F821,S105,S110,S310,S410,SCS109,SIM105,W503,W504']
 
 
   - repo: https://github.com/codespell-project/codespell
