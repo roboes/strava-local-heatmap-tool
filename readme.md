@@ -19,19 +19,19 @@ Although similar projects already exist (see [here](#see-also)), some of the fea
 Munich Heatmap (rides in orange; runs in blue)
 
 <p align="center">
-<img src="examples/heatmap_munich_1.png" alt="Heatmap Munich" width=800>
+<img src="./media/heatmap_munich_1.png" alt="Heatmap Munich" width=800>
 </p>
 
 Vienna Heatmap (rides in orange; runs in blue)
 
 <p align="center">
-<img src="examples/heatmap_vienna_1.png" alt="Heatmap Vienna" width=800>
+<img src="./media/heatmap_vienna_1.png" alt="Heatmap Vienna" width=800>
 </p>
 
 Map interaction (option to navigate through the map, click in a line and get an activity summary pop-up)
 
 <p align="center">
-<img src="examples/heatmap_popup_1.png" alt="Heatmap Pop-up" width=800>
+<img src="./media/heatmap_popup_1.png" alt="Heatmap Pop-up" width=800>
 </p>
 
 
@@ -163,7 +163,7 @@ A workaround is to open the rendered .html Folium map in Chrome, then open Chrom
 The [canvas.xcf](canvas.xcf) is a Gimp template for printing a canvas in 30 x 30 cm. Its design is similar to [this](https://www.reddit.com/r/bicycling/comments/7hiv41/i_printed_my_strava_heatmap_on_canvas_infos_in/) Reddit discussion:
 
 <p align="center">
-<img src="examples/heatmap_munich_2.png" alt="Heatmap Munich" width=800>
+<img src="./media/heatmap_munich_2.png" alt="Heatmap Munich" width=800>
 </p>
 
 The statistics shown in the lower right corner are printed once the `heatmap` function is executed.
