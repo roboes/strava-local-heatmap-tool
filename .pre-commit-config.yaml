@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2023-11-13
+# Last update: 2023-12-11
 
 
 # Save this file to '/.pre-commit-config.yaml'
@@ -64,14 +64,14 @@ repos:
 
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.37.0
+    rev: v0.38.0
     hooks:
       - id: markdownlint
         args: ['--disable', 'MD013']
 
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.1.5
+    rev: v0.1.9
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, '--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105'] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
@@ -84,7 +84,7 @@ repos:
 
 
   - repo: https://github.com/psf/black
-    rev: 23.11.0 # Without leading 'v'
+    rev: 23.12.1 # Without leading 'v'
     hooks:
       - id: black
         args: [--skip-string-normalization]
@@ -153,14 +153,14 @@ repos:
           # Testing
           - flake8-assertive
 
-        args: ['--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,F821,S105,S110,S310,S410,SCS109,SIM105,W503,W504']
+        args: ['--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,F821,S105,S110,S301,S310,S410,SCS109,SIM105,SIM904,W503,W504']
 
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
     hooks:
       - id: codespell
-        exclude: 'at-post-letter-template.py|terminvereinbarung-munich.py'
+        exclude: 'at-post-letter-template.py|tcx-tools.py|terminvereinbarung-munich.py'
 
 default_language_version:
   python: python3
