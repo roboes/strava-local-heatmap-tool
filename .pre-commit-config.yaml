@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2023-12-11
+# Last update: 2024-01-01
 
 
 # Save this file to '/.pre-commit-config.yaml'
@@ -45,7 +45,7 @@ repos:
       # - id: pretty-format-json # Not, since it decodes utf-8
       #   args: ['--autofix']
       - id: requirements-txt-fixer
-      # - id: sort-simple-yaml
+      - id: sort-simple-yaml
       - id: trailing-whitespace
 
 
@@ -160,7 +160,7 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
-        exclude: 'at-post-letter-template.py|tcx-tools.py|terminvereinbarung-munich.py'
+        exclude: 'at-post-letter-template.py|dkb_bank_transactions.py|tcx-tools.py'
 
 default_language_version:
   python: python3
