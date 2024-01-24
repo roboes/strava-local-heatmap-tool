@@ -38,7 +38,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           # python-version: '3.x' #  Latest stable major version of Python
-          python-version: '3.11'
+          python-version: '3.11' # Use Python 3.11 as a workaround because of the missing "pkg_resources" package
 
 
       - name: Install Python dependencies
