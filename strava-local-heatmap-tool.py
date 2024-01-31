@@ -234,70 +234,80 @@ def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
     if skip_geolocation is False:
         # Create 'activity_geolocation' column
         activities_geolocation['activity_geolocation'] = activities_geolocation.apply(
-            lambda row: reverse(
-                query='{}, {}'.format(
-                    row['activity_location_latitude'],
-                    row['activity_location_longitude'],
-                ),
-                exactly_one=True,
-                addressdetails=True,
-                namedetails=True,
-                language='en',
-                timeout=None,
-            )
-            if pd.notna(row['activity_location_latitude'])
-            else None,
+            lambda row: (
+                reverse(
+                    query='{}, {}'.format(
+                        row['activity_location_latitude'],
+                        row['activity_location_longitude'],
+                    ),
+                    exactly_one=True,
+                    addressdetails=True,
+                    namedetails=True,
+                    language='en',
+                    timeout=None,
+                )
+                if pd.notna(row['activity_location_latitude'])
+                else None
+            ),
             axis=1,
         )
 
         # Create 'activity_location_country_code' column
-        activities_geolocation[
-            'activity_location_country_code'
-        ] = activities_geolocation.apply(
-            lambda row: row['activity_geolocation']
-            .raw.get('address')
-            .get('country_code')
-            if pd.notna(row['activity_geolocation'])
-            else None,
-            axis=1,
+        activities_geolocation['activity_location_country_code'] = (
+            activities_geolocation.apply(
+                lambda row: (
+                    row['activity_geolocation'].raw.get('address').get('country_code')
+                    if pd.notna(row['activity_geolocation'])
+                    else None
+                ),
+                axis=1,
+            )
         )
 
         # Create 'activity_location_country' column
-        activities_geolocation[
-            'activity_location_country'
-        ] = activities_geolocation.apply(
-            lambda row: row['activity_geolocation'].raw.get('address').get('country')
-            if pd.notna(row['activity_geolocation'])
-            else None,
-            axis=1,
+        activities_geolocation['activity_location_country'] = (
+            activities_geolocation.apply(
+                lambda row: (
+                    row['activity_geolocation'].raw.get('address').get('country')
+                    if pd.notna(row['activity_geolocation'])
+                    else None
+                ),
+                axis=1,
+            )
         )
 
         # Create 'activity_location_state' column
-        activities_geolocation[
-            'activity_location_state'
-        ] = activities_geolocation.apply(
-            lambda row: row['activity_geolocation'].raw.get('address').get('state')
-            if pd.notna(row['activity_geolocation'])
-            else None,
-            axis=1,
+        activities_geolocation['activity_location_state'] = (
+            activities_geolocation.apply(
+                lambda row: (
+                    row['activity_geolocation'].raw.get('address').get('state')
+                    if pd.notna(row['activity_geolocation'])
+                    else None
+                ),
+                axis=1,
+            )
         )
 
         # Create 'activity_location_city' column
         activities_geolocation['activity_location_city'] = activities_geolocation.apply(
-            lambda row: row['activity_geolocation'].raw.get('address').get('city')
-            if pd.notna(row['activity_geolocation'])
-            else None,
+            lambda row: (
+                row['activity_geolocation'].raw.get('address').get('city')
+                if pd.notna(row['activity_geolocation'])
+                else None
+            ),
             axis=1,
         )
 
         # Create 'activity_location_postal_code' column
-        activities_geolocation[
-            'activity_location_postal_code'
-        ] = activities_geolocation.apply(
-            lambda row: row['activity_geolocation'].raw.get('address').get('postcode')
-            if pd.notna(row['activity_geolocation'])
-            else None,
-            axis=1,
+        activities_geolocation['activity_location_postal_code'] = (
+            activities_geolocation.apply(
+                lambda row: (
+                    row['activity_geolocation'].raw.get('address').get('postcode')
+                    if pd.notna(row['activity_geolocation'])
+                    else None
+                ),
+                axis=1,
+            )
         )
 
         activities_geolocation = (
@@ -484,12 +494,12 @@ def activities_filter(
     """Filter Strava activities DataFrame."""
     # Filter activities by type
     if activity_type is not None:
-        activities_df = activities_df.query('activity_type.isin(@activity_type)')
+        activities_df = activities_df.query(expr='activity_type.isin(@activity_type)')
 
     # Filter activities by state
     if activity_location_state is not None:
         activities_df = activities_df.query(
-            'activity_location_state.isin(@activity_location_state)',
+            expr='activity_location_state.isin(@activity_location_state)',
         ).reset_index(level=None, drop=True)
 
     # Filter activities inside a bounding box
@@ -538,7 +548,7 @@ def heatmap(
     activities_df = (
         activities_df
         # Remove activities without latitude/longitude coordinates
-        .query('filename.notna()')
+        .query(expr='filename.notna()')
     )
 
     if 'distance' not in activities_df.columns:
@@ -552,7 +562,7 @@ def heatmap(
     activities_coordinates_df = (
         activities_coordinates_df
         # Filter activities coordinates given the filtered activities
-        .query('filename.isin(@activities_df["filename"])')
+        .query(expr='filename.isin(@activities_df["filename"])')
         # Select columns
         .filter(items=['datetime', 'filename', 'latitude', 'longitude'])
         # Left join 'activities_df'
@@ -803,7 +813,7 @@ activities_df = activities_import(
 
 # Check for activities without activity_gear
 (
-    activities_df.query('activity_gear.isna()')
+    activities_df.query(expr='activity_gear.isna()')
     .groupby(
         by=['activity_type'],
         level=None,
@@ -816,16 +826,16 @@ activities_df = activities_import(
 
 
 # Check for activity_name inconsistencies
-(activities_df.query('activity_name.str.contains(r"^ |  | $")'))
+(activities_df.query(expr='activity_name.str.contains(r"^ |  | $")'))
 
-(activities_df.query('activity_name.str.contains(r"[^\\s]-|-[^\\s]")'))
+(activities_df.query(expr='activity_name.str.contains(r"[^\\s]-|-[^\\s]")'))
 
 
 # Check for distinct values for activity_name separated by a hyphen
 (
     pd.DataFrame(
         data=(
-            activities_df.query('activity_type == "Ride"')['activity_name']
+            activities_df.query(expr='activity_type == "Ride"')['activity_name']
             .str.split(pat=' - ', expand=True)
             .stack()
             .unique()
@@ -842,7 +852,7 @@ activities_df = activities_import(
     pd.DataFrame(
         data=(
             activities_df.query(
-                'activity_type == "Weight Training" and activity_description.notna()',
+                expr='activity_type == "Weight Training" and activity_description.notna()',
             )['activity_description']
             .replace(to_replace=r'; | and ', value=r', ', regex=True)
             .str.lower()
@@ -873,7 +883,7 @@ activities_df = activities_import(
 
 # Runs overview per year-month (distance in km)
 (
-    activities_df.query('activity_type == "Run"')
+    activities_df.query(expr='activity_type == "Run"')
     .assign(activity_month=lambda row: row['activity_date'].dt.strftime('%Y-%m'))
     .groupby(
         by=['activity_month'],
@@ -891,8 +901,8 @@ activities_df = activities_import(
 
 # Strava yearly overview cumulative (Plot)
 strava_yearly_overview = (
-    activities_df.query('activity_type == "Ride"')
-    .query('activity_date >= "2017-01-01" and activity_date < "2023-01-01"')
+    activities_df.query(expr='activity_type == "Ride"')
+    .query(expr='activity_date >= "2017-01-01" and activity_date < "2023-01-01"')
     .assign(
         distance=lambda row: row['distance'] / 1000,
         year=lambda row: row['activity_date'].dt.strftime('%Y'),
