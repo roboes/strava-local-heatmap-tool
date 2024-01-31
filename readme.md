@@ -5,9 +5,10 @@
 ## Description
 
 This repository aims to be a multi feature tool for locally manipulating Strava's bulk export archive file. The main features are:
+
 - Unzip compressed (.gz) activities files.
-- Remove leading first line blank spaces of .tcx activities files for properly importing it (feature not yet available directly in the ```sweatpy``` package, see [here](https://github.com/GoldenCheetah/sweatpy/issues/99)).
-- Import multiple .fit/.gpx/.tcx activities files at once (without the need of conversion) and create local highly customizable heatmaps with different colors by activity type with the use of the ```folium``` library.
+- Remove leading first line blank spaces of .tcx activities files for properly importing it (feature not yet available directly in the `sweatpy` package, see [here](https://github.com/GoldenCheetah/sweatpy/issues/99)).
+- Import multiple .fit/.gpx/.tcx activities files at once (without the need of conversion) and create local highly customizable heatmaps with different colors by activity type with the use of the `folium` library.
 - Increment your Strava activities metadata by adding country, state, city, postal code, latitude, longitude geolocation information for each activity given the start recorded point (first non-missing latitude/longitude).
 
 Additionally, it is possible to apply a series of filters to select the desired activities before performing the heatmap, such as activities that started inside a bounding box (within 4 corner latitude/longitude points) or activities realized in specific countries or states.
@@ -34,20 +35,19 @@ Map interaction (option to navigate through the map, click in a line and get an 
 <img src="./media/heatmap_popup_1.png" alt="Heatmap Pop-up" width=800>
 </p>
 
-
 # Usage
 
 ## Bulk export your Strava data
 
 Strava's bulk export process documentation can be found [here](https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export#Bulk).
 
-Note: Please keep in mind that Strava's bulk export is language sensitive, i.e. the activities column labels will depend on users' defined language preferences. This project assumes that your bulk export was realized in ```English (US)```. To change the language, log in to [Strava](https://www.strava.com) and on the bottom right-hand corner of any page, select ```English (US)``` from the drop-down menu (more on this [here](https://support.strava.com/hc/en-us/articles/216917337-Changing-your-language-in-the-Strava-App)).
+Note: Please keep in mind that Strava's bulk export is language sensitive, i.e. the activities column labels will depend on users' defined language preferences. This project assumes that your bulk export was realized in `English (US)`. To change the language, log in to [Strava](https://www.strava.com) and on the bottom right-hand corner of any page, select `English (US)` from the drop-down menu (more on this [here](https://support.strava.com/hc/en-us/articles/216917337-Changing-your-language-in-the-Strava-App)).
 
 In essence, the process is as follows:
-1. Log in to [Strava](https://www.strava.com).
-2. Open the [Account Download and Deletion](https://www.strava.com/athlete/delete_your_account). Then press ```Request Your Archive``` button (Important: Don't press anything else on that page, particularly not the ```Request Account Deletion``` button).
-3. Wait until Strava notifies you that your archive is ready via email. Download the archive file and unzip it to ```Downloads/Strava``` folder (or alternatively set a different working directory in the [strava-local-heatmap-tool.py](strava-local-heatmap-tool.py) code).
 
+1. Log in to [Strava](https://www.strava.com).
+2. Open the [Account Download and Deletion](https://www.strava.com/athlete/delete_your_account). Then press `Request Your Archive` button (Important: Don't press anything else on that page, particularly not the `Request Account Deletion` button).
+3. Wait until Strava notifies you that your archive is ready via email. Download the archive file and unzip it to `Downloads/Strava` folder (or alternatively set a different working directory in the [strava-local-heatmap-tool.py](strava-local-heatmap-tool.py) code).
 
 ## Python dependencies
 
@@ -55,36 +55,40 @@ In essence, the process is as follows:
 python -m pip install folium geopy pandas plotnine python-dateutil sweat
 ```
 
-
 ## Functions
 
 ### activities_import
+
 ```.py
 activities_import()
 ```
 
 #### Description
+
 - Imports Strava activities assuming that the current working directory is the [Strava data bulk export](#bulk-export-your-strava-data).
 
 #### Parameters
+
 - None.
 
 <br>
 
 ### activities_filter
+
 ```.py
 activities_filter(activities_df=activities, activity_type=None, activity_state=None, bounding_box={'latitude_top_right': None, 'longitude_top_right': None, 'latitude_top_left': None, 'longitude_top_left': None, 'latitude_bottom_left': None, 'longitude_bottom_left': None, 'latitude_bottom_right': None, 'longitude_bottom_right': None})
 ```
 
 #### Description
+
 - Filter Strava activities DataFrame.
 
-
 #### Parameters
-- `activities_df`: Strava activities *DataFrame*. Imported from `activities_import()` function.
-- `activity_type`: *str list*. If *None*, no activity type filter will be applied.
-- `activity_state`: *str list*. If *None*, no state location filter will be applied.
-- `bounding_box`: *dict*. If *None*, no bounding box will be applied.
+
+- `activities_df`: Strava activities _DataFrame_. Imported from `activities_import()` function.
+- `activity_type`: _str list_. If _None_, no activity type filter will be applied.
+- `activity_state`: _str list_. If _None_, no state location filter will be applied.
+- `bounding_box`: _dict_. If _None_, no bounding box will be applied.
 
 Examples of `bounding_box`:
 
@@ -121,22 +125,25 @@ bounding_box={
 <br>
 
 ### heatmap
+
 ```.py
 heatmap(activities_df=activities, activities_coordinates_df=activities_coordinates, activity_colors={'Hike': '#00AD43', 'Ride': '#FF5800', 'Run': '#00A6FC'}, map_tile='dark_all', map_zoom_start=12, line_weight=1.0, line_opacity=0.6, line_smooth_factor=1.0)
 ```
 
 #### Description
-- Create Heatmap based on inputted *activities* DataFrame.
+
+- Create Heatmap based on inputted _activities_ DataFrame.
 
 #### Parameters
-- `activities_df`: Strava activities *DataFrame*, default: *activities*. Imported from `activities_import()` function.
-- `activities_coordinates_df`: Strava activities coordinates *DataFrame*, default: *activities_coordinates*. Imported from `activities_import()` function.
-- `activity_colors`: *dict*, default: *{'Hike': '#00AD43', 'Ride': '#FF5800', 'Run': '#00A6FC'}*. Depending on how many distinct `activity_type` are contained in the `activities` DataFrame, more dictionaries objects need to be added.
-- `map_tile`: *str*, options: *'dark_all'*, *'dark_nolabels'*, *'light_all'*, *'light_nolabels'*, *'terrain_background'*, *'toner_lite'* and *'ocean_basemap'*, default: *'dark_all'*.
-- `map_zoom_start`: *int*, default: *12*. Initial zoom level for the map (for more details, check *zoom_start* parameter for [folium.folium.Map documentation](https://python-visualization.github.io/folium/modules.html#folium.folium.Map)).
-- `line_weight`: *float*, default: *1.0*. Stroke width in pixels (for more details, check *weight* parameter for [folium.vector_layers.PolyLine](https://python-visualization.github.io/folium/modules.html#folium.vector_layers.PolyLine)).
-- `line_opacity`: *float*, default: *0.6*. Stroke opacity (for more details, check *opacity* parameter for [folium.vector_layers.PolyLine](https://python-visualization.github.io/folium/modules.html#folium.vector_layers.PolyLine)).
-- `line_smooth_factor`: *float*, default: *1.0*. How much to simplify the polyline on each zoom level. More means better performance and smoother look, and less means more accurate representation (for more details, check *smooth_factor* parameter for [folium.vector_layers.PolyLine](https://python-visualization.github.io/folium/modules.html#folium.vector_layers.PolyLine)).
+
+- `activities_df`: Strava activities _DataFrame_, default: _activities_. Imported from `activities_import()` function.
+- `activities_coordinates_df`: Strava activities coordinates _DataFrame_, default: _activities_coordinates_. Imported from `activities_import()` function.
+- `activity_colors`: _dict_, default: _{'Hike': '#00AD43', 'Ride': '#FF5800', 'Run': '#00A6FC'}_. Depending on how many distinct `activity_type` are contained in the `activities` DataFrame, more dictionaries objects need to be added.
+- `map_tile`: _str_, options: _'dark_all'_, _'dark_nolabels'_, _'light_all'_, _'light_nolabels'_, _'terrain_background'_, _'toner_lite'_ and _'ocean_basemap'_, default: _'dark_all'_.
+- `map_zoom_start`: _int_, default: _12_. Initial zoom level for the map (for more details, check _zoom_start_ parameter for [folium.folium.Map documentation](https://python-visualization.github.io/folium/modules.html#folium.folium.Map)).
+- `line_weight`: _float_, default: _1.0_. Stroke width in pixels (for more details, check _weight_ parameter for [folium.vector_layers.PolyLine](https://python-visualization.github.io/folium/modules.html#folium.vector_layers.PolyLine)).
+- `line_opacity`: _float_, default: _0.6_. Stroke opacity (for more details, check _opacity_ parameter for [folium.vector_layers.PolyLine](https://python-visualization.github.io/folium/modules.html#folium.vector_layers.PolyLine)).
+- `line_smooth_factor`: _float_, default: _1.0_. How much to simplify the polyline on each zoom level. More means better performance and smoother look, and less means more accurate representation (for more details, check _smooth_factor_ parameter for [folium.vector_layers.PolyLine](https://python-visualization.github.io/folium/modules.html#folium.vector_layers.PolyLine)).
 
 <br>
 
@@ -147,12 +154,12 @@ copy_activities(activities_files=activities['filename'])
 ```
 
 #### Description
+
 - Copies a given .fit/.gpx/.tcx list of files to 'output\activities' folder.
 
 #### Parameters
-- `activities_files`: *list*, default: *activities['filename']*.
 
-
+- `activities_files`: _list_, default: _activities['filename']_.
 
 ## Save map as a high definition .png file and print it on canvas
 
@@ -160,7 +167,7 @@ Unfortunately Folium does not natively export a rendered map to .png.
 
 A workaround is to open the rendered .html Folium map in Chrome, then open Chrome's Inspector, changing the width and high dimensions to 3500 x 3500 px, setting the zoom to 22% and the DPR to 3.0. Then capture a full size screenshot.
 
-The [canvas.xcf](canvas.xcf) is a Gimp template for printing a canvas in 30 x 30 cm. Its design is similar to [this](https://www.reddit.com/r/bicycling/comments/7hiv41/i_printed_my_strava_heatmap_on_canvas_infos_in/) Reddit discussion:
+The [canvas.xcf](./templates/canvas.xcf) is a Gimp template for printing a canvas in 30 x 30 cm. Its design is similar to [this](https://www.reddit.com/r/bicycling/comments/7hiv41/i_printed_my_strava_heatmap_on_canvas_infos_in/) Reddit discussion:
 
 <p align="center">
 <img src="./media/heatmap_munich_2.png" alt="Heatmap Munich" width=800>
@@ -168,11 +175,9 @@ The [canvas.xcf](canvas.xcf) is a Gimp template for printing a canvas in 30 x 30
 
 The statistics shown in the lower right corner are printed once the `heatmap` function is executed.
 
-
 # Documentation
 
 [Strava API v3](https://developers.strava.com/docs/reference/#api-models-DetailedActivity): Definition of activities variables.
-
 
 # See also
 
@@ -190,7 +195,6 @@ These repositories have a similar or additional purpose to this project:
 
 [dérive - Generate a heatmap from GPS tracks](https://erik.github.io/derive/): Generate heatmap by drag and dropping one or more .gpx/.tcx/.fit/.igc/.skiz file(s) (JavaScript, HTML).
 
-
 ## Articles
 
 [Data Science For Cycling - How to Visualize GPX Strava Routes With Python and Folium](https://towardsdatascience.com/data-science-for-cycling-how-to-visualize-gpx-strava-routes-with-python-and-folium-21b96ade73c7) ([GitHub](https://github.com/better-data-science/data-science-for-cycling)).
@@ -202,6 +206,7 @@ These repositories have a similar or additional purpose to this project:
 [StatsHunters](https://www.statshunters.com): Connect your Strava account and show all your sport activities and added photos on one map.
 
 Recommended [settings](https://www.statshunters.com/settings):
+
 - [x] Receive monthly statistics by email
 - [x] Hide my data in club heatmaps
 
