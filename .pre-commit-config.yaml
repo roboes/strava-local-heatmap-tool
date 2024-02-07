@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2024-01-31
+# Last update: 2024-02-07
 
 # Save this file to '/.pre-commit-config.yaml'
 
@@ -70,7 +70,7 @@ repos:
         args: ["--disable", "MD013"]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.1.15
+    rev: v0.2.1
     hooks:
       - id: ruff
         args: [
