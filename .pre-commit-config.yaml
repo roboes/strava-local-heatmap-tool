@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2024-03-12
+# Last update: 2024-03-26
 
 # Save this file to '/.pre-commit-config.yaml'
 
@@ -60,9 +60,10 @@ repos:
     rev: v3.1.0
     hooks:
       - id: prettier
+        args: ["--print-width=220"]
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 2.3.5 # Without leading 'v'
+    rev: 3.0.3 # Without leading 'v'
     hooks:
       - id: sqlfluff-fix
         args: ["--dialect=postgres"]
@@ -74,14 +75,10 @@ repos:
         args: ["--disable", "MD013,MD033,MD045"] # "--disable=" does not work for multiple rules
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.3.2
+    rev: v0.3.4
     hooks:
       - id: ruff
-        args: [
-            "--fix",
-            "--exit-non-zero-on-fix",
-            "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105",
-          ] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
+        args: ["--fix", "--exit-non-zero-on-fix", "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
 
   - repo: https://github.com/asottile/add-trailing-comma
     rev: v3.1.0
@@ -89,7 +86,7 @@ repos:
       - id: add-trailing-comma
 
   - repo: https://github.com/psf/black
-    rev: 24.2.0 # Without leading 'v'
+    rev: 24.3.0 # Without leading 'v'
     hooks:
       - id: black
         args: ["--skip-string-normalization"]
@@ -109,7 +106,7 @@ repos:
       - id: text-unicode-replacement-char
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.1
+    rev: v3.15.2
     hooks:
       - id: pyupgrade
         args: ["--py312-plus"]
@@ -154,18 +151,13 @@ repos:
           # Testing
           - flake8-assertive
 
-        args:
-          [
-            "--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,F821,S105,S110,S301,S310,S410,SCS109,SIM105,SIM904,W503,W504",
-          ]
+        args: ["--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,F821,S105,S110,S301,S310,S410,SCS109,SIM105,SIM904,W503,W504"]
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
     hooks:
       - id: codespell
-        args: [
-            "--ignore-words-list=als,ges,ist,nax,oder,produkt,ressource,sie,termine",
-          ] # The --ignore-words-list argument has a bug where it needs to be lowercase, see: https://github.com/codespell-project/codespell/issues/1390
+        args: ["--ignore-words-list=als,ges,ist,nax,oder,produkt,ressource,sie,termine"] # The --ignore-words-list argument has a bug where it needs to be lowercase, see: https://github.com/codespell-project/codespell/issues/1390
 
 default_language_version:
   python: python3
