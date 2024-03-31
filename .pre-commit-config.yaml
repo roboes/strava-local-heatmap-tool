@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2024-02-07
+# Last update: 2024-03-26
 
 # Save this file to '/.pre-commit-config.yaml'
 
@@ -34,14 +34,12 @@ repos:
         args: ["--remove"]
       - id: forbid-new-submodules
       # - id: forbid-submodules
-      #   args: ['--fix=lf']
+      #   args: ["--fix=lf"]
       - id: mixed-line-ending
         args: ["--fix=lf"]
       - id: name-tests-test
-      # - id: no-commit-to-branch
-      #   args: [--branch, staging]
-      # - id: pretty-format-json # Not, since it decodes utf-8
-      #   args: ['--autofix']
+      - id: pretty-format-json
+        args: ["--autofix"]
       - id: requirements-txt-fixer
       - id: sort-simple-yaml
       - id: trailing-whitespace
@@ -62,22 +60,25 @@ repos:
     rev: v3.1.0
     hooks:
       - id: prettier
+        args: ["--print-width=220"]
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.0.3 # Without leading 'v'
+    hooks:
+      - id: sqlfluff-fix
+        args: ["--dialect=postgres"]
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.39.0
     hooks:
       - id: markdownlint
-        args: ["--disable", "MD013"]
+        args: ["--disable", "MD013,MD033,MD045"] # "--disable=" does not work for multiple rules
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.2.1
+    rev: v0.3.4
     hooks:
       - id: ruff
-        args: [
-            --fix,
-            --exit-non-zero-on-fix,
-            "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105",
-          ] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
+        args: ["--fix", "--exit-non-zero-on-fix", "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
 
   - repo: https://github.com/asottile/add-trailing-comma
     rev: v3.1.0
@@ -85,10 +86,10 @@ repos:
       - id: add-trailing-comma
 
   - repo: https://github.com/psf/black
-    rev: 24.1.1 # Without leading 'v'
+    rev: 24.3.0 # Without leading 'v'
     hooks:
       - id: black
-        args: [--skip-string-normalization]
+        args: ["--skip-string-normalization"]
 
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
@@ -105,7 +106,7 @@ repos:
       - id: text-unicode-replacement-char
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.0
+    rev: v3.15.2
     hooks:
       - id: pyupgrade
         args: ["--py312-plus"]
@@ -150,21 +151,13 @@ repos:
           # Testing
           - flake8-assertive
 
-        args:
-          [
-            "--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,F821,S105,S110,S301,S310,S410,SCS109,SIM105,SIM904,W503,W504",
-          ]
+        args: ["--ignore=B007,B023,B902,C408,CM001,D103,E203,E266,E402,E501,F821,S105,S110,S301,S310,S410,SCS109,SIM105,SIM904,W503,W504"]
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
     hooks:
       - id: codespell
-        # exclude: "dkb-bank-transactions.py"
-        args: # The --ignore-words-list argument has a bug where it needs to be lowercase, see: https://github.com/codespell-project/codespell/issues/1390
-          [
-            --ignore-words-list,
-            "als,ges,ist,nax,oder,produkt,ressource,sie,termine",
-          ]
+        args: ["--ignore-words-list=als,ges,ist,nax,oder,produkt,ressource,sie,termine"] # The --ignore-words-list argument has a bug where it needs to be lowercase, see: https://github.com/codespell-project/codespell/issues/1390
 
 default_language_version:
   python: python3
