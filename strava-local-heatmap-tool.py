@@ -87,14 +87,7 @@ def tcx_lstrip(*, directory):
 
 
 def rename_columns(*, df):
-    df.columns = (
-        df.columns.astype(str)
-        .str.strip()
-        .str.lower()
-        .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
-        .str.replace(pat=r':', repl=r'', regex=True)
-        .str.replace(pat=r'__', repl=r'_', regex=True)
-    )
+    df.columns = df.columns.astype(str).str.strip().str.lower().str.replace(pat=r' |\.|-|/', repl=r'_', regex=True).str.replace(pat=r':', repl=r'', regex=True).str.replace(pat=r'__', repl=r'_', regex=True)
 
     # Return objects
     return df
@@ -199,9 +192,7 @@ def activities_coordinates_import(*, activities_folder):
     # activities_coordinates_df['elapsed_time'] = activities_coordinates_df.groupby(by=['filename'], level=None, as_index=False, sort=True, dropna=True)['datetime'].transform(lambda row: (row.max() - row.min()).total_seconds())
 
     # Remove rows without latitude/longitude
-    activities_coordinates_df = activities_coordinates_df[
-        activities_coordinates_df['latitude'].notna()
-    ]
+    activities_coordinates_df = activities_coordinates_df[activities_coordinates_df['latitude'].notna()]
 
     # Return objects
     return activities_coordinates_df
@@ -234,7 +225,8 @@ def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
             as_index=False,
             sort=True,
             dropna=True,
-        ).first()
+        )
+        .first()
     )
 
     if skip_geolocation is False:
@@ -259,61 +251,33 @@ def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
         )
 
         # Create 'activity_location_country_code' column
-        activities_geolocation['activity_location_country_code'] = (
-            activities_geolocation.apply(
-                lambda row: (
-                    row['activity_geolocation'].raw.get('address').get('country_code')
-                    if pd.notna(row['activity_geolocation'])
-                    else None
-                ),
-                axis=1,
-            )
+        activities_geolocation['activity_location_country_code'] = activities_geolocation.apply(
+            lambda row: (row['activity_geolocation'].raw.get('address').get('country_code') if pd.notna(row['activity_geolocation']) else None),
+            axis=1,
         )
 
         # Create 'activity_location_country' column
-        activities_geolocation['activity_location_country'] = (
-            activities_geolocation.apply(
-                lambda row: (
-                    row['activity_geolocation'].raw.get('address').get('country')
-                    if pd.notna(row['activity_geolocation'])
-                    else None
-                ),
-                axis=1,
-            )
+        activities_geolocation['activity_location_country'] = activities_geolocation.apply(
+            lambda row: (row['activity_geolocation'].raw.get('address').get('country') if pd.notna(row['activity_geolocation']) else None),
+            axis=1,
         )
 
         # Create 'activity_location_state' column
-        activities_geolocation['activity_location_state'] = (
-            activities_geolocation.apply(
-                lambda row: (
-                    row['activity_geolocation'].raw.get('address').get('state')
-                    if pd.notna(row['activity_geolocation'])
-                    else None
-                ),
-                axis=1,
-            )
+        activities_geolocation['activity_location_state'] = activities_geolocation.apply(
+            lambda row: (row['activity_geolocation'].raw.get('address').get('state') if pd.notna(row['activity_geolocation']) else None),
+            axis=1,
         )
 
         # Create 'activity_location_city' column
         activities_geolocation['activity_location_city'] = activities_geolocation.apply(
-            lambda row: (
-                row['activity_geolocation'].raw.get('address').get('city')
-                if pd.notna(row['activity_geolocation'])
-                else None
-            ),
+            lambda row: (row['activity_geolocation'].raw.get('address').get('city') if pd.notna(row['activity_geolocation']) else None),
             axis=1,
         )
 
         # Create 'activity_location_postal_code' column
-        activities_geolocation['activity_location_postal_code'] = (
-            activities_geolocation.apply(
-                lambda row: (
-                    row['activity_geolocation'].raw.get('address').get('postcode')
-                    if pd.notna(row['activity_geolocation'])
-                    else None
-                ),
-                axis=1,
-            )
+        activities_geolocation['activity_location_postal_code'] = activities_geolocation.apply(
+            lambda row: (row['activity_geolocation'].raw.get('address').get('postcode') if pd.notna(row['activity_geolocation']) else None),
+            axis=1,
         )
 
         activities_geolocation = (
@@ -472,7 +436,8 @@ def activities_import(*, activities_folder, activities_file, skip_geolocation=Fa
             ],
         )
         # Change dtypes
-        .astype(dtype={'activity_id': 'str'}).assign(
+        .astype(dtype={'activity_id': 'str'})
+        .assign(
             activity_date=lambda row: row['activity_date'].apply(parser.parse),
         )
         # Transform columns
@@ -622,26 +587,17 @@ def heatmap(
 
     # Plot activities into Folium map (adapted from: https://github.com/andyakrn/activities_heatmap)
     for activity_type in activities_coordinates_df['activity_type'].unique():
-        df_activity_type = activities_coordinates_df[
-            activities_coordinates_df['activity_type'] == activity_type
-        ]
+        df_activity_type = activities_coordinates_df[activities_coordinates_df['activity_type'] == activity_type]
 
         for activity in df_activity_type['activity_id'].unique():
-            date = df_activity_type[df_activity_type['activity_id'] == activity][
-                'datetime'
-            ].dt.date.iloc[0]
+            date = df_activity_type[df_activity_type['activity_id'] == activity]['datetime'].dt.date.iloc[0]
             distance = round(
-                df_activity_type[df_activity_type['activity_id'] == activity][
-                    'distance'
-                ].iloc[0]
-                / 1000,
+                df_activity_type[df_activity_type['activity_id'] == activity]['distance'].iloc[0] / 1000,
                 1,
             )
 
             coordinates = tuple(
-                df_activity_type[df_activity_type['activity_id'] == activity][
-                    'coordinates'
-                ],
+                df_activity_type[df_activity_type['activity_id'] == activity]['coordinates'],
             )
             folium.PolyLine(
                 locations=coordinates,
@@ -687,31 +643,23 @@ def heatmap(
     # Summary
     print('Total activities: ' + str(activities_df['activity_id'].nunique()))
     print(
-        'Total distance (in km): '
-        + str(round(activities_df['distance'].sum() / 1000, 1)),
+        'Total distance (in km): ' + str(round(activities_df['distance'].sum() / 1000, 1)),
     )
     print(
         'Total moving time (in days, hours, minutes, seconds): '
         + str(
             timedelta(
-                seconds=(
-                    activities_df.assign(moving_time=activities_df['moving_time'] * 60)[
-                        'moving_time'
-                    ]
-                ).sum(),
+                seconds=(activities_df.assign(moving_time=activities_df['moving_time'] * 60)['moving_time']).sum(),
             ),
         ),
     )
     print(
-        'Total elevation gain (in km): '
-        + str(round(activities_df['elevation_gain'].sum() / 1000, 1)),
+        'Total elevation gain (in km): ' + str(round(activities_df['elevation_gain'].sum() / 1000, 1)),
     )
     print(
         'Longest activity (in km): '
         + round(
-            activities_df[
-                activities_df['distance'] == activities_df['distance'].max()
-            ].filter(
+            activities_df[activities_df['distance'] == activities_df['distance'].max()].filter(
                 items=['distance'],
             )
             / 1000,
@@ -720,7 +668,7 @@ def heatmap(
         + ' ('
         + activities_df[activities_df['distance'] == activities_df['distance'].max()]
         .filter(items=['activity_date'])
-        .assign(activity_date=lambda row: row['activity_date'].dt.strftime('%b %Y'))
+        .assign(activity_date=lambda row: row['activity_date'].dt.strftime(date_format='%b %Y'))
         .to_string(index=False, header=False)
         + ')',
     )
@@ -776,9 +724,7 @@ def activities_file_rename(
             'filename',
         ]
     ].apply(lambda row: '-'.join(column for column in row if pd.notna(column)), axis=1)
-    activities_geolocation_df['reference'] = activities_geolocation_df[
-        'reference'
-    ].replace(to_replace=r'/', value=r'-', regex=True)
+    activities_geolocation_df['reference'] = activities_geolocation_df['reference'].replace(to_replace=r'/', value=r'-', regex=True)
 
     references = dict(
         activities_geolocation_df.dropna(subset=['filename']).set_index(
@@ -840,12 +786,7 @@ activities_df = activities_import(
 # Check for distinct values for activity_name separated by a hyphen
 (
     pd.DataFrame(
-        data=(
-            activities_df.query(expr='activity_type == "Ride"')['activity_name']
-            .str.split(pat=' - ', expand=True)
-            .stack()
-            .unique()
-        ),
+        data=(activities_df.query(expr='activity_type == "Ride"')['activity_name'].str.split(pat=' - ', expand=True).stack().unique()),
         index=None,
         columns=['activity_name'],
         dtype=None,
@@ -890,7 +831,7 @@ activities_df = activities_import(
 # Runs overview per year-month (distance in km)
 (
     activities_df.query(expr='activity_type == "Run"')
-    .assign(activity_month=lambda row: row['activity_date'].dt.strftime('%Y-%m'))
+    .assign(activity_month=lambda row: row['activity_date'].dt.strftime(date_format='%Y-%m'))
     .groupby(
         by=['activity_month'],
         level=None,
@@ -911,7 +852,7 @@ strava_yearly_overview = (
     .query(expr='activity_date >= "2017-01-01" and activity_date < "2023-01-01"')
     .assign(
         distance=lambda row: row['distance'] / 1000,
-        year=lambda row: row['activity_date'].dt.strftime('%Y'),
+        year=lambda row: row['activity_date'].dt.strftime(date_format='%Y'),
         day_of_year=lambda row: row['activity_date'].dt.dayofyear,
     )
     .assign(

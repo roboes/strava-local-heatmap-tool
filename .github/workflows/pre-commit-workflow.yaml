@@ -1,5 +1,5 @@
 ## Pre-commit Workflow
-# Last update: 2023-11-13
+# Last update: 2024-05-14
 
 # Save this file to '/.github/workflows/pre-commit-workflow.yaml'
 
@@ -28,8 +28,7 @@ jobs:
       - name: Setup Python - https://github.com/actions/setup-python
         uses: actions/setup-python@v4
         with:
-          # python-version: '3.x' #  Latest stable major version of Python
-          python-version: "3.11" # Use Python 3.11 as a workaround because of the missing "pkg_resources" package
+          python-version: '3.x' #  Latest stable major version of Python
 
       - name: Install Python dependencies
         run: |
