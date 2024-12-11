@@ -58,11 +58,14 @@ def gz_extract(*, directory):
             file_name = Path(file).stem
 
             # Extract file
-            with gzip.open(filename=file, mode='rb', encoding=None) as file_in, open(
-                os.path.join(os.getcwd(), directory, file_name),
-                mode='wb',
-                encoding=None,
-            ) as file_out:
+            with (
+                gzip.open(filename=file, mode='rb', encoding=None) as file_in,
+                open(
+                    os.path.join(os.getcwd(), directory, file_name),
+                    mode='wb',
+                    encoding=None,
+                ) as file_out,
+            ):
                 shutil.copyfileobj(fsrc=file_in, fdst=file_out)
 
             # Delete file

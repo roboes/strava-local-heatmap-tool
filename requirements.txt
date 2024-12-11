@@ -1,6 +1,6 @@
-folium==0.16.0
+folium==0.19.0
 geopy==2.4.1
-pandas==2.2.2
-plotnine==0.13.6
+pandas==2.2.3
+plotnine==0.14.3
 python_dateutil==2.8.2
 sweat==0.25.0
