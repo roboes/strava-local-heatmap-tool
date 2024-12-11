@@ -1,7 +1,7 @@
 ## Pre-commit Workflow
-# Last update: 2024-05-14
+# Last update: 2024-05-27
 
-# Save this file to '/.github/workflows/pre-commit-workflow.yaml'
+# Save this file to './.github/workflows/pre-commit-workflow.yaml'
 
 # Name of the workflow
 name: pre-commit
@@ -25,8 +25,13 @@ jobs:
       - name: Checkout repository content - https://github.com/actions/checkout
         uses: actions/checkout@v4
 
+      # - name: Run PHP-CS-Fixer - https://github.com/marketplace/actions/cs-fixer-for-php
+        # uses: erkenes/php-cs-fixer-action@main
+        # with:
+          # args: --config="./.github/workflows/.php-cs-fixer.dist.php"
+
       - name: Setup Python - https://github.com/actions/setup-python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x' #  Latest stable major version of Python
 
@@ -35,4 +40,4 @@ jobs:
           python -m pip install --upgrade pip
 
       - name: Pre-commit action - https://github.com/pre-commit/action
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1

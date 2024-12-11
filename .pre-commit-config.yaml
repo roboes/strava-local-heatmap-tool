@@ -1,11 +1,11 @@
 ## Pre-commit configuration
-# Last update: 2024-05-14
+# Last update: 2024-12-11
 
 # Save this file to '/.pre-commit-config.yaml'
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=500"]
@@ -45,20 +45,36 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/rtts/djhtml
-    rev: 3.0.6 # Without leading 'v'
+    rev: 3.0.7 # Without leading 'v'
     hooks:
       # - id: djhtml
       - id: djcss
       - id: djjs
 
+  # - repo: https://github.com/lorenzwalthert/precommit
+    # rev: v0.4.3.9003
+    # hooks:
+      # - id: no-browser-statement
+      # - id: no-debug-statement
+      # - id: parsable-R
+      # # - id: lintr
+      # - id: style-files
+
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 3.0.6 # Without leading 'v'
+    rev: 3.3.0 # Without leading 'v'
     hooks:
       - id: sqlfluff-fix
-        args: ["--dialect=postgres"]
+        args: ["--dialect=mysql", "--exclude-rules=ambiguous.column_count, layout.long_lines, references.keywords"]
+
+  # - repo: https://github.com/digitalpulp/pre-commit-php # Requires brew install php-cs-fixer
+    # rev: 1.4.0 # Without leading 'v'
+    # hooks:
+    # - id: php-cs-fixer
+      # files: \.(php)$
+      # args: [--rules=@PSR12]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.4.4
+    rev: v0.8.2
     hooks:
       - id: ruff
         args: ["--fix", "--exit-non-zero-on-fix", "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
@@ -85,16 +101,16 @@ repos:
       - id: text-unicode-replacement-char
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.2
+    rev: v3.19.0
     hooks:
       - id: pyupgrade
         args: ["--py312-plus"]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.3.0
     hooks:
       - id: codespell
-        args: ["--ignore-words-list=als,ges,ist,nax,oder,produkt,ressource,sie,termine"] # The --ignore-words-list argument has a bug where it needs to be lowercase, see: https://github.com/codespell-project/codespell/issues/1390
+        args: ["--ignore-words-list=alle,als,deine,dokument,ges,ist,itens,nax,oder,produkt,ressource,ser,sie,tage,termine"] # The --ignore-words-list argument has a bug where it needs to be lowercase, see: https://github.com/codespell-project/codespell/issues/1390
 
 default_language_version:
   python: python3
