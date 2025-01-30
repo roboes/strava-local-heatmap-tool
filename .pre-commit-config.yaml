@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2024-12-11
+# Last update: 2025-01-29
 
 # Save this file to '/.pre-commit-config.yaml'
 
@@ -51,14 +51,13 @@ repos:
       - id: djcss
       - id: djjs
 
-  # - repo: https://github.com/lorenzwalthert/precommit
-    # rev: v0.4.3.9003
+  # - repo: https://github.com/igorshubovych/markdownlint-cli
+    # rev: v0.44.0
     # hooks:
-      # - id: no-browser-statement
-      # - id: no-debug-statement
-      # - id: parsable-R
-      # # - id: lintr
-      # - id: style-files
+      # - id: markdownlint
+        # language: system
+        # types: [markdown]
+        # args: ["--disable=MD013", "--disable=MD024", "--disable=MD033", "--disable=MD045"]
 
   - repo: https://github.com/sqlfluff/sqlfluff
     rev: 3.3.0 # Without leading 'v'
@@ -73,8 +72,17 @@ repos:
       # files: \.(php)$
       # args: [--rules=@PSR12]
 
+  # - repo: https://github.com/lorenzwalthert/precommit
+    # rev: v0.4.3.9003
+    # hooks:
+      # - id: no-browser-statement
+      # - id: no-debug-statement
+      # - id: parsable-R
+      # # - id: lintr
+      # - id: style-files
+
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.8.2
+    rev: v0.9.3
     hooks:
       - id: ruff
         args: ["--fix", "--exit-non-zero-on-fix", "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
@@ -101,15 +109,16 @@ repos:
       - id: text-unicode-replacement-char
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.0
+    rev: v3.19.1
     hooks:
       - id: pyupgrade
         args: ["--py312-plus"]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.0
     hooks:
       - id: codespell
+        exclude: '^data/'
         args: ["--ignore-words-list=alle,als,deine,dokument,ges,ist,itens,nax,oder,produkt,ressource,ser,sie,tage,termine"] # The --ignore-words-list argument has a bug where it needs to be lowercase, see: https://github.com/codespell-project/codespell/issues/1390
 
 default_language_version:

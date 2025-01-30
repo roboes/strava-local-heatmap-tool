@@ -1,5 +1,5 @@
 ## Strava Local Heatmap Tool
-# Last update: 2023-10-18
+# Last update: 2025-01-28
 
 
 """About: Create Strava heatmaps locally using Folium library in Python."""
@@ -23,20 +23,18 @@ import shutil
 import webbrowser
 
 from dateutil import parser
-
-# from fitparse import FitFile
+from fitparse import FitFile
 import folium
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
+import gpxpy
+import gpxpy.gpx
+from janitor import clean_names
 import pandas as pd
-from plotnine import aes, geom_line, ggplot, labs, scale_color_brewer, theme_minimal
-import sweat
+from tcxreader.tcxreader import TCXReader
 
 
 # Settings
-
-## Set working directory
-os.chdir(path=os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava Export'))
 
 ## Copy-on-Write (will be enabled by default in version 3.0)
 if pd.__version__ >= '1.5.0' and pd.__version__ < '3.0.0':
@@ -48,9 +46,9 @@ if pd.__version__ >= '1.5.0' and pd.__version__ < '3.0.0':
 ###########
 
 
-def gz_extract(*, directory):
+def gz_extract(*, activities_directory):
     # List of files including path
-    files = glob.glob(pathname=os.path.join(directory, '*.gz'), recursive=False)
+    files = glob.glob(pathname=os.path.join(activities_directory, '*.gz'), recursive=False)
 
     if len(files) > 0:
         for file in files:
@@ -58,24 +56,17 @@ def gz_extract(*, directory):
             file_name = Path(file).stem
 
             # Extract file
-            with (
-                gzip.open(filename=file, mode='rb', encoding=None) as file_in,
-                open(
-                    os.path.join(os.getcwd(), directory, file_name),
-                    mode='wb',
-                    encoding=None,
-                ) as file_out,
-            ):
+            with gzip.open(filename=file, mode='rb', encoding=None) as file_in, open(os.path.join(os.getcwd(), activities_directory, file_name), mode='wb', encoding=None) as file_out:
                 shutil.copyfileobj(fsrc=file_in, fdst=file_out)
 
             # Delete file
             os.remove(path=file)
 
 
-def tcx_lstrip(*, directory):
+def tcx_lstrip(*, activities_directory):
     """Remove leading first line blank spaces of .tcx activity files."""
     # List of .tcx files including path
-    files = glob.glob(pathname=os.path.join(directory, '*.tcx'), recursive=False)
+    files = glob.glob(pathname=os.path.join(activities_directory, '*.tcx'), recursive=False)
 
     if len(files) > 0:
         for file in files:
@@ -89,70 +80,67 @@ def tcx_lstrip(*, directory):
                     file_out.writelines(file_text)
 
 
-def rename_columns(*, df):
-    df.columns = df.columns.astype(str).str.strip().str.lower().str.replace(pat=r' |\.|-|/', repl=r'_', regex=True).str.replace(pat=r':', repl=r'', regex=True).str.replace(pat=r'__', repl=r'_', regex=True)
+def activity_file_parse(*, file_path):
+    parsed_data = []
+
+    if file_path.endswith('.fit'):
+        fitfile = FitFile(file_path)
+        for record in fitfile.get_messages('record'):
+            data = {field.name: field.value for field in record}
+            if 'timestamp' in data and 'position_lat' in data and 'position_long' in data:
+                parsed_data.append(
+                    {
+                        'datetime': data.get('timestamp'),
+                        'latitude': data.get('position_lat') * (180 / 2**31),  # Convert to degrees
+                        'longitude': data.get('position_long') * (180 / 2**31),  # Convert to degrees
+                    },
+                )
+
+    elif file_path.endswith('.gpx'):
+        with open(file_path) as gpx_file:
+            gpx = gpxpy.parse(gpx_file)
+            for track in gpx.tracks:
+                for segment in track.segments:
+                    for point in segment.points:
+                        if point.time is not None and point.latitude is not None and point.longitude is not None:
+                            parsed_data.append(
+                                {
+                                    'datetime': point.time,
+                                    'latitude': point.latitude,
+                                    'longitude': point.longitude,
+                                },
+                            )
+
+    elif file_path.endswith('.tcx'):
+        tcx_reader = TCXReader()
+        tcx = tcx_reader.read(file_path)
+        for trackpoint in tcx.trackpoints:
+            if trackpoint.time is not None and trackpoint.latitude is not None and trackpoint.longitude is not None:
+                parsed_data.append(
+                    {
+                        'datetime': trackpoint.time,
+                        'latitude': trackpoint.latitude,
+                        'longitude': trackpoint.longitude,
+                    },
+                )
+
+    # Create DataFrame (empty if "parsed_data" is empty)
+    df = pd.DataFrame(data=parsed_data, index=None, dtype=None)
+
+    # Remove timezone information for .gpx files
+    if file_path.endswith('.gpx') and not df.empty:
+        df = df.assign(datetime=df['datetime'].dt.tz_localize(tz=None))
 
     # Return objects
     return df
 
 
-# def read_fit(*, activities_file):
-#     """Import .fit file to DataFrame."""
-#
-#     # Import .fit file
-#     fitfile = FitFile(activities_file)
-#
-#     total = []
-#
-#     # Convert .fit file to DataFrame
-#     for record in fitfile.get_messages('record'):
-#         values = record.get_values()
-#         total.append(values)
-#
-#     df = pd.DataFrame(data=total, index=None, dtype=None)
-#
-#     # Rename columns
-#     df = df.rename(columns={'timestamp': 'datetime', 'position_lat': 'latitude', 'position_long': 'longitude'})
-#
-#     # Create 'filename' column
-#     df['filename'] = activities_file
-#
-#     # Transform columns
-#     if 'latitude' in df.columns:
-#         # df['latitude'] = df['latitude'].map(lambda row: (row * 180 / 2**31 + 180) % 360 - 180)
-#         df['latitude'] = df['latitude'].map(lambda row: row * 180 / (2 << 30))
-#
-#     if 'longitude' in df.columns:
-#         # df['longitude'] = df['longitude'].map(lambda row: (row * 180 / 2**31 + 180) % 360 - 180)
-#         df['longitude'] = df['longitude'].map(lambda row: row * 180 / (2 << 30))
-#
-#
-#     # Select columns
-#     df = df.filter(items=['datetime', 'filename', 'latitude', 'longitude'])
-#
-#     # Return objects
-#     return df
-
-
-def activities_coordinates_import(*, activities_folder):
+def activities_coordinates_import(*, activities_directory):
     """Import .fit/.gpx/.tcx activity files into a DataFrame."""
     # List of .fit/.gpx/.tcx files to be imported
-    activities_files = glob.glob(
-        pathname=os.path.join(activities_folder, '*.fit'),
-        recursive=False,
-    )
-    activities_files.extend(
-        glob.glob(
-            pathname=os.path.join(activities_folder, '*.gpx'),
-            recursive=False,
-        ),
-    )
-    activities_files.extend(
-        glob.glob(
-            pathname=os.path.join(activities_folder, '*.tcx'),
-            recursive=False,
-        ),
-    )
+    activities_files = glob.glob(pathname=os.path.join(activities_directory, '*.fit'), recursive=False)
+    activities_files.extend(glob.glob(pathname=os.path.join(activities_directory, '*.gpx'), recursive=False))
+    activities_files.extend(glob.glob(pathname=os.path.join(activities_directory, '*.tcx'), recursive=False))
 
     # Create empty DataFrame
     activities_coordinates_df = pd.DataFrame(data=None, index=None, dtype='str')
@@ -161,58 +149,42 @@ def activities_coordinates_import(*, activities_folder):
     for activities_file in activities_files:
         try:
             # Import file and convert to DataFrame
-            df = sweat.read_file(fpath=activities_file)
+            df = activity_file_parse(file_path=activities_file)
 
             # Create 'filename' column
             df['filename'] = activities_file
-            df['filename'] = df['filename'].replace(
-                to_replace=r'^activities',
-                value=r'',
-                regex=True,
-            )
-            df['filename'] = df['filename'].replace(
-                to_replace=r'^/[/]?|\\[\\]?',
-                value=r'',
-                regex=True,
-            )
+            df['filename'] = df['filename'].replace(to_replace=r'.*activities', value=r'', regex=True)
+            df['filename'] = df['filename'].replace(to_replace=r'^/[/]?|\\[\\]?', value=r'', regex=True)
 
             # Concatenate DataFrame
-            activities_coordinates_df = pd.concat(
-                objs=[activities_coordinates_df, df],
-                axis=0,
-                ignore_index=False,
-                sort=False,
-            )
+            activities_coordinates_df = pd.concat(objs=[activities_coordinates_df, df], axis=0, ignore_index=False, sort=False)
 
         except Exception:
             pass
 
-    activities_coordinates_df = activities_coordinates_df.filter(
-        items=['datetime', 'filename', 'latitude', 'longitude'],
-    )
+    activities_coordinates_df = activities_coordinates_df.filter(items=['datetime', 'filename', 'latitude', 'longitude'])
 
     # Get elapsed time (in seconds)
     # activities_coordinates_df['elapsed_time'] = activities_coordinates_df.groupby(by=['filename'], level=None, as_index=False, sort=True, dropna=True)['datetime'].transform(lambda row: (row.max() - row.min()).total_seconds())
 
     # Remove rows without latitude/longitude
-    activities_coordinates_df = activities_coordinates_df[activities_coordinates_df['latitude'].notna()]
+    if not activities_coordinates_df.empty and 'latitude' in activities_coordinates_df.columns:
+        activities_coordinates_df = activities_coordinates_df[activities_coordinates_df['latitude'].notna()]
+    else:
+        print('No activities with GPS data (latitude/longitude) found.')
 
     # Return objects
     return activities_coordinates_df
 
 
-def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
+def activities_geolocator(*, activities_coordinates_df, skip_geolocation=True):
     """Get geolocation for .fit/.gpx/.tcx activity files given the start recorded coordinates (first non-missing latitude/longitude)."""
     # Settings and variables
-    geolocator = Nominatim(
-        domain='nominatim.openstreetmap.org',
-        scheme='https',
-        user_agent='strava-local-heatmap-tool',
-    )
+    geolocator = Nominatim(domain='nominatim.openstreetmap.org', scheme='https', user_agent='strava-local-heatmap-tool')
     reverse = RateLimiter(func=geolocator.reverse, min_delay_seconds=1)
 
-    # Create 'activities_geolocation' DataFrame
-    activities_geolocation = (
+    # Create 'activities_geolocation_df' DataFrame
+    activities_geolocation_df = (
         activities_coordinates_df
         # Rename columns
         .rename(
@@ -222,31 +194,15 @@ def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
             },
         )
         # Keep first row of each filename
-        .groupby(
-            by=['filename'],
-            level=None,
-            as_index=False,
-            sort=True,
-            dropna=True,
-        )
+        .groupby(by=['filename'], level=None, as_index=False, sort=True, dropna=True)
         .first()
     )
 
     if skip_geolocation is False:
         # Create 'activity_geolocation' column
-        activities_geolocation['activity_geolocation'] = activities_geolocation.apply(
+        activities_geolocation_df['activity_geolocation'] = activities_geolocation_df.apply(
             lambda row: (
-                reverse(
-                    query='{}, {}'.format(
-                        row['activity_location_latitude'],
-                        row['activity_location_longitude'],
-                    ),
-                    exactly_one=True,
-                    addressdetails=True,
-                    namedetails=True,
-                    language='en',
-                    timeout=None,
-                )
+                reverse(query='{}, {}'.format(row['activity_location_latitude'], row['activity_location_longitude']), exactly_one=True, addressdetails=True, namedetails=True, language='en', timeout=None)
                 if pd.notna(row['activity_location_latitude'])
                 else None
             ),
@@ -254,43 +210,43 @@ def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
         )
 
         # Create 'activity_location_country_code' column
-        activities_geolocation['activity_location_country_code'] = activities_geolocation.apply(
+        activities_geolocation_df['activity_location_country_code'] = activities_geolocation_df.apply(
             lambda row: (row['activity_geolocation'].raw.get('address').get('country_code') if pd.notna(row['activity_geolocation']) else None),
             axis=1,
         )
 
         # Create 'activity_location_country' column
-        activities_geolocation['activity_location_country'] = activities_geolocation.apply(
+        activities_geolocation_df['activity_location_country'] = activities_geolocation_df.apply(
             lambda row: (row['activity_geolocation'].raw.get('address').get('country') if pd.notna(row['activity_geolocation']) else None),
             axis=1,
         )
 
         # Create 'activity_location_state' column
-        activities_geolocation['activity_location_state'] = activities_geolocation.apply(
+        activities_geolocation_df['activity_location_state'] = activities_geolocation_df.apply(
             lambda row: (row['activity_geolocation'].raw.get('address').get('state') if pd.notna(row['activity_geolocation']) else None),
             axis=1,
         )
 
         # Create 'activity_location_city' column
-        activities_geolocation['activity_location_city'] = activities_geolocation.apply(
+        activities_geolocation_df['activity_location_city'] = activities_geolocation_df.apply(
             lambda row: (row['activity_geolocation'].raw.get('address').get('city') if pd.notna(row['activity_geolocation']) else None),
             axis=1,
         )
 
         # Create 'activity_location_postal_code' column
-        activities_geolocation['activity_location_postal_code'] = activities_geolocation.apply(
+        activities_geolocation_df['activity_location_postal_code'] = activities_geolocation_df.apply(
             lambda row: (row['activity_geolocation'].raw.get('address').get('postcode') if pd.notna(row['activity_geolocation']) else None),
             axis=1,
         )
 
-        activities_geolocation = (
-            activities_geolocation
+        activities_geolocation_df = (
+            activities_geolocation_df
             # Remove columns
             .drop(columns=['datetime', 'activity_geolocation'], axis=1, errors='ignore')
         )
 
     if skip_geolocation is True:
-        activities_geolocation = activities_geolocation.assign(
+        activities_geolocation_df = activities_geolocation_df.assign(
             activity_location_country_code=None,
             activity_location_country=None,
             activity_location_state=None,
@@ -300,8 +256,8 @@ def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
             activity_location_longitude=None,
         )
 
-    activities_geolocation = (
-        activities_geolocation
+    activities_geolocation_df = (
+        activities_geolocation_df
         # Select columns
         .filter(
             items=[
@@ -320,10 +276,10 @@ def activities_geolocator(*, activities_coordinates_df, skip_geolocation=False):
     )
 
     # Return objects
-    return activities_geolocation
+    return activities_geolocation_df
 
 
-def activities_import(*, activities_folder, activities_file, skip_geolocation=False):
+def activities_import(*, activities_directory, activities_file, skip_geolocation=True):
     """
     Strava activities import.
 
@@ -333,50 +289,23 @@ def activities_import(*, activities_folder, activities_file, skip_geolocation=Fa
     max_speed, average_speed: meters/second
     """
     # Import .fit/.gpx/.tcx activity files into a DataFrame
-    activities_coordinates_df = activities_coordinates_import(
-        activities_folder=activities_folder,
-    )
+    activities_coordinates_df = activities_coordinates_import(activities_directory=activities_directory)
 
     # Get geolocation for .fit/.gpx/.tcx activity files given the start recorded coordinates (first non-missing latitude/longitude)
-    activities_geolocation = activities_geolocator(
-        activities_coordinates_df=activities_coordinates_df,
-        skip_geolocation=skip_geolocation,
-    )
+    activities_geolocation_df = activities_geolocator(activities_coordinates_df=activities_coordinates_df, skip_geolocation=skip_geolocation)
 
     # Import Strava activities
-    activities_df = pd.read_csv(
-        filepath_or_buffer=activities_file,
-        sep=',',
-        header=0,
-        index_col=None,
-        skiprows=0,
-        skipfooter=0,
-        dtype=None,
-        engine='python',
-        encoding='utf-8',
-        keep_default_na=True,
-    )
+    activities_df = pd.read_csv(filepath_or_buffer=activities_file, sep=',', header=0, index_col=None, skiprows=0, skipfooter=0, dtype=None, engine='python', encoding='utf-8', keep_default_na=True)
 
     # Rename columns
-    activities_df = rename_columns(df=activities_df)
+    activities_df = clean_names(activities_df)
 
     activities_df = (
         activities_df
         # Clean 'filename' column
-        .assign(
-            filename=lambda row: row['filename'].replace(
-                to_replace=r'^activities/|\.gz$',
-                value='',
-                regex=True,
-            ),
-        )
-        # Left join 'activities_geolocation'
-        .merge(
-            right=activities_geolocation,
-            how='left',
-            on=['filename'],
-            indicator=False,
-        )
+        .assign(filename=lambda row: row['filename'].replace(to_replace=r'^activities/|\.gz$', value='', regex=True))
+        # Left join 'activities_geolocation_df'
+        .merge(right=activities_geolocation_df, how='left', on=['filename'], indicator=False)
         # Remove columns
         .drop(columns=['distance', 'commute'], axis=1, errors='ignore')
         # Remame columns
@@ -440,31 +369,18 @@ def activities_import(*, activities_folder, activities_file, skip_geolocation=Fa
         )
         # Change dtypes
         .astype(dtype={'activity_id': 'str'})
-        .assign(
-            activity_date=lambda row: row['activity_date'].apply(parser.parse),
-        )
+        .assign(activity_date=lambda row: row['activity_date'].apply(parser.parse))
         # Transform columns
-        .assign(
-            elapsed_time=lambda row: row['elapsed_time'] / 60,
-            moving_time=lambda row: row['moving_time'] / 60,
-            max_speed=lambda row: row['max_speed'] * 3.6,
-            average_speed=lambda row: row['average_speed'] * 3.6,
-        )
+        .assign(elapsed_time=lambda row: row['elapsed_time'] / 60, moving_time=lambda row: row['moving_time'] / 60, max_speed=lambda row: row['max_speed'] * 3.6, average_speed=lambda row: row['average_speed'] * 3.6)
         # Rearrange rows
         .sort_values(by=['activity_date', 'activity_type'], ignore_index=True)
     )
 
     # Return objects
-    return activities_df
+    return activities_df, activities_coordinates_df
 
 
-def activities_filter(
-    *,
-    activities_df,
-    activity_type=None,
-    activity_location_state=None,
-    bounding_box=None,
-):
+def activities_filter(*, activities_df, activity_type=None, activity_location_state=None, bounding_box=None):
     """Filter Strava activities DataFrame."""
     # Filter activities by type
     if activity_type is not None:
@@ -472,34 +388,20 @@ def activities_filter(
 
     # Filter activities by state
     if activity_location_state is not None:
-        activities_df = activities_df.query(
-            expr='activity_location_state.isin(@activity_location_state)',
-        ).reset_index(level=None, drop=True, names=None)
+        activities_df = activities_df.query(expr='activity_location_state.isin(@activity_location_state)').reset_index(level=None, drop=True, names=None)
 
     # Filter activities inside a bounding box
     if all(value is not None for value in bounding_box.values()):
         activities_df = activities_df[
             activities_df['activity_location_latitude'].between(
-                min(
-                    bounding_box['latitude_bottom_left'],
-                    bounding_box['latitude_bottom_right'],
-                ),
-                max(
-                    bounding_box['latitude_top_left'],
-                    bounding_box['latitude_top_right'],
-                ),
+                min(bounding_box['latitude_bottom_left'], bounding_box['latitude_bottom_right']),
+                max(bounding_box['latitude_top_left'], bounding_box['latitude_top_right']),
             )
         ]
         activities_df = activities_df[
             activities_df['activity_location_longitude'].between(
-                min(
-                    bounding_box['longitude_bottom_left'],
-                    bounding_box['longitude_top_left'],
-                ),
-                max(
-                    bounding_box['longitude_bottom_right'],
-                    bounding_box['longitude_top_right'],
-                ),
+                min(bounding_box['longitude_bottom_left'], bounding_box['longitude_top_left']),
+                max(bounding_box['longitude_bottom_right'], bounding_box['longitude_top_right']),
             )
         ]
 
@@ -507,10 +409,11 @@ def activities_filter(
     return activities_df
 
 
-def heatmap(
+def strava_activities_heatmap(
     *,
     activities_df,
     activities_coordinates_df,
+    strava_activities_heatmap_output_path,
     activity_colors=None,
     map_tile='dark_all',
     map_zoom_start=12,
@@ -529,9 +432,7 @@ def heatmap(
         activities_df = activities_df.assign(distance=0)
 
     if 'datetime' not in activities_coordinates_df.columns:
-        activities_coordinates_df = activities_coordinates_df.assign(
-            datetime=pd.Timestamp.now(tz='UTC').replace(tzinfo=None),
-        )
+        activities_coordinates_df = activities_coordinates_df.assign(datetime=pd.Timestamp.now(tz='UTC').replace(tzinfo=None))
 
     activities_coordinates_df = (
         activities_coordinates_df
@@ -540,14 +441,7 @@ def heatmap(
         # Select columns
         .filter(items=['datetime', 'filename', 'latitude', 'longitude'])
         # Left join 'activities_df'
-        .merge(
-            right=activities_df.filter(
-                items=['filename', 'activity_id', 'activity_type', 'distance'],
-            ),
-            how='left',
-            on=['filename'],
-            indicator=False,
-        )
+        .merge(right=activities_df.filter(items=['filename', 'activity_id', 'activity_type', 'distance']), how='left', on=['filename'], indicator=False)
         # Remove columns
         .drop(columns=['filename'], axis=1, errors='ignore')
     )
@@ -556,12 +450,7 @@ def heatmap(
     # activities_coordinates_df.info(memory_usage='deep')
 
     # Transform columns
-    activities_coordinates_df['coordinates'] = list(
-        zip(
-            activities_coordinates_df['latitude'],
-            activities_coordinates_df['longitude'],
-        ),
-    )
+    activities_coordinates_df['coordinates'] = list(zip(activities_coordinates_df['latitude'], activities_coordinates_df['longitude']))
 
     # Define map tile
     if map_tile in ['dark_all', 'dark_nolabels', 'light_all', 'light_nolabels']:
@@ -594,14 +483,9 @@ def heatmap(
 
         for activity in df_activity_type['activity_id'].unique():
             date = df_activity_type[df_activity_type['activity_id'] == activity]['datetime'].dt.date.iloc[0]
-            distance = round(
-                df_activity_type[df_activity_type['activity_id'] == activity]['distance'].iloc[0] / 1000,
-                1,
-            )
+            distance = round(df_activity_type[df_activity_type['activity_id'] == activity]['distance'].iloc[0] / 1000, 1)
 
-            coordinates = tuple(
-                df_activity_type[df_activity_type['activity_id'] == activity]['coordinates'],
-            )
+            coordinates = tuple(df_activity_type[df_activity_type['activity_id'] == activity]['coordinates'])
             folium.PolyLine(
                 locations=coordinates,
                 color=activity_colors[activity_type],
@@ -636,38 +520,18 @@ def heatmap(
                 overlay=True,
             ).add_to(activities_map)
 
-    # Create 'output' folder
-    os.makedirs(name='output', exist_ok=True)
-
     # Save to .html file
-    activities_map.save(outfile=os.path.join('output', 'activities-map.html'))
-    webbrowser.open(url=os.path.join('output', 'activities-map.html'))
+    activities_map.save(outfile=strava_activities_heatmap_output_path)
+    webbrowser.open(url=strava_activities_heatmap_output_path)
 
     # Summary
     print('Total activities: ' + str(activities_df['activity_id'].nunique()))
-    print(
-        'Total distance (in km): ' + str(round(activities_df['distance'].sum() / 1000, 1)),
-    )
-    print(
-        'Total moving time (in days, hours, minutes, seconds): '
-        + str(
-            timedelta(
-                seconds=(activities_df.assign(moving_time=activities_df['moving_time'] * 60)['moving_time']).sum(),
-            ),
-        ),
-    )
-    print(
-        'Total elevation gain (in km): ' + str(round(activities_df['elevation_gain'].sum() / 1000, 1)),
-    )
+    print('Total distance (in km): ' + str(round(activities_df['distance'].sum() / 1000, 1)))
+    print('Total moving time (in days, hours, minutes, seconds): ' + str(timedelta(seconds=(activities_df.assign(moving_time=activities_df['moving_time'] * 60)['moving_time']).sum())))
+    print('Total elevation gain (in km): ' + str(round(activities_df['elevation_gain'].sum() / 1000, 1)))
     print(
         'Longest activity (in km): '
-        + round(
-            activities_df[activities_df['distance'] == activities_df['distance'].max()].filter(
-                items=['distance'],
-            )
-            / 1000,
-            1,
-        ).to_string(index=False, header=False)
+        + round(activities_df[activities_df['distance'] == activities_df['distance'].max()].filter(items=['distance']) / 1000, 1).to_string(index=False, header=False)
         + ' ('
         + activities_df[activities_df['distance'] == activities_df['distance'].max()]
         .filter(items=['activity_date'])
@@ -676,47 +540,25 @@ def heatmap(
         + ')',
     )
     print('Max speed (km/h): ' + str(round(activities_df['max_speed'].max(), 1)))
-    print(
-        'Average speed (km/h): ' + str(round(activities_df['average_speed'].mean(), 1)),
-    )
+    print('Average speed (km/h): ' + str(round(activities_df['average_speed'].mean(), 1)))
 
 
 # Copy activities files to 'output/activities' folder
-def copy_activities(*, activities_files):
+def copy_activities(*, activities_directory, activities_files):
     # Create 'output/activities' folder
-    os.makedirs(name=os.path.join('output', 'activities'), exist_ok=True)
+    os.makedirs(name=os.path.join(activities_directory, 'output', 'activities'), exist_ok=True)
 
     # Copy activities files to 'output/activities' folder
     for filename in activities_files.tolist():
-        shutil.copy(
-            src=os.path.join('activities', filename),
-            dst=os.path.join('output', 'activities'),
-        )
+        shutil.copy(src=os.path.join('activities', filename), dst=os.path.join('output', 'activities'))
 
 
 # Rename activities files
-def activities_file_rename(
-    *,
-    activities_geolocation_df,
-    activities_folder='activities',
-):
+def activities_file_rename(*, activities_directory, activities_geolocation_df):
     # List of .fit/.gpx/.tcx files to be renamed
-    activities_files = glob.glob(
-        pathname=os.path.join(activities_folder, '*.fit'),
-        recursive=False,
-    )
-    activities_files.extend(
-        glob.glob(
-            pathname=os.path.join(activities_folder, '*.gpx'),
-            recursive=False,
-        ),
-    )
-    activities_files.extend(
-        glob.glob(
-            pathname=os.path.join(activities_folder, '*.tcx'),
-            recursive=False,
-        ),
-    )
+    activities_files = glob.glob(pathname=os.path.join(activities_directory, '*.fit'), recursive=False)
+    activities_files.extend(glob.glob(pathname=os.path.join(activities_directory, '*.gpx'), recursive=False))
+    activities_files.extend(glob.glob(pathname=os.path.join(activities_directory, '*.tcx'), recursive=False))
 
     # New file name
     activities_geolocation_df['reference'] = activities_geolocation_df[
@@ -729,223 +571,10 @@ def activities_file_rename(
     ].apply(lambda row: '-'.join(column for column in row if pd.notna(column)), axis=1)
     activities_geolocation_df['reference'] = activities_geolocation_df['reference'].replace(to_replace=r'/', value=r'-', regex=True)
 
-    references = dict(
-        activities_geolocation_df.dropna(subset=['filename']).set_index(
-            keys='filename',
-            drop=True,
-            append=False,
-        )['reference'],
-    )
+    references = dict(activities_geolocation_df.dropna(subset=['filename']).set_index(keys='filename', drop=True, append=False)['reference'])
 
     for activity_file in activities_files:
         activity_file = Path(activity_file)
 
         filename_new = references.get(activity_file.name, activity_file.stem)
-        activity_file.rename(
-            target=activity_file.with_name(f'{filename_new}{activity_file.suffix}'),
-        )
-
-
-###########################
-# Strava Local Heatmap Tool
-###########################
-
-# Extract .gz files
-gz_extract(directory='activities')
-
-# Remove leading first line blank spaces of .tcx activity files
-tcx_lstrip(directory='activities')
-
-# Import Strava activities to DataFrame
-activities_df = activities_import(
-    activities_folder='activities',
-    activities_file='activities.csv',
-    skip_geolocation=False,
-)
-
-
-## Tests
-
-# Check for activities without activity_gear
-(
-    activities_df.query(expr='activity_gear.isna()')
-    .groupby(
-        by=['activity_type'],
-        level=None,
-        as_index=False,
-        sort=True,
-        dropna=True,
-    )
-    .agg(count=('activity_id', 'nunique'))
-)
-
-
-# Check for activity_name inconsistencies
-(activities_df.query(expr='activity_name.str.contains(r"^ |  | $")'))
-
-(activities_df.query(expr='activity_name.str.contains(r"[^\\s]-|-[^\\s]")'))
-
-
-# Check for distinct values for activity_name separated by a hyphen
-(
-    pd.DataFrame(
-        data=(activities_df.query(expr='activity_type == "Ride"')['activity_name'].str.split(pat=' - ', expand=True).stack().unique()),
-        index=None,
-        columns=['activity_name'],
-        dtype=None,
-    ).sort_values(by=['activity_name'], ignore_index=True)
-)
-
-
-# Check for distinct values for activity_description
-(
-    pd.DataFrame(
-        data=(
-            activities_df.query(
-                expr='activity_type == "Weight Training" and activity_description.notna()',
-            )['activity_description']
-            .replace(to_replace=r'; | and ', value=r', ', regex=True)
-            .str.lower()
-            .str.split(pat=',', expand=True)
-            .stack()
-            .unique()
-        ),
-        index=None,
-        columns=['activity_description'],
-        dtype=None,
-    ).sort_values(by=['activity_description'], ignore_index=True)
-)
-
-
-## Summary
-
-# Count of activities by type
-(
-    activities_df.groupby(
-        by=['activity_type'],
-        level=None,
-        as_index=False,
-        sort=True,
-        dropna=True,
-    ).agg(count=('activity_id', 'nunique'))
-)
-
-
-# Runs overview per year-month (distance in km)
-(
-    activities_df.query(expr='activity_type == "Run"')
-    .assign(activity_month=lambda row: row['activity_date'].dt.strftime(date_format='%Y-%m'))
-    .groupby(
-        by=['activity_month'],
-        level=None,
-        as_index=False,
-        sort=True,
-        dropna=True,
-    )
-    .agg(
-        count=('activity_id', 'nunique'),
-        distance=('distance', lambda x: x.sum() / 1000),
-    )
-)
-
-
-# Strava yearly overview cumulative (Plot)
-strava_yearly_overview = (
-    activities_df.query(expr='activity_type == "Ride"')
-    .query(expr='activity_date >= "2017-01-01" and activity_date < "2023-01-01"')
-    .assign(
-        distance=lambda row: row['distance'] / 1000,
-        year=lambda row: row['activity_date'].dt.strftime(date_format='%Y'),
-        day_of_year=lambda row: row['activity_date'].dt.dayofyear,
-    )
-    .assign(
-        distance_cumulative=lambda row: row.groupby(
-            by=['year'],
-            level=None,
-            as_index=False,
-            sort=True,
-            dropna=True,
-        )['distance'].transform('cumsum'),
-    )
-    .filter(
-        items=[
-            'activity_date',
-            'year',
-            'day_of_year',
-            'distance',
-            'distance_cumulative',
-        ],
-    )
-)
-
-(
-    ggplot(
-        strava_yearly_overview,
-        aes(
-            x='day_of_year',
-            y='distance_cumulative',
-            group='year',
-            color='factor(year)',
-        ),
-    )
-    + geom_line()
-    + scale_color_brewer(palette=1)
-    + theme_minimal()
-    +
-    # theme(legend_position='bottom') +
-    labs(
-        title='Cumultative Distance (KM)',
-        y='Distance (KM)',
-        x='Day of Year',
-        color='Year',
-    )
-)
-
-# Delete objects
-del strava_yearly_overview
-
-
-# Filter Strava activities
-activities_df = activities_filter(
-    activities_df=activities_df,
-    activity_type=['Hike', 'Ride', 'Run'],
-    activity_location_state=None,
-    bounding_box={
-        'latitude_top_right': None,
-        'longitude_top_right': None,
-        'latitude_top_left': None,
-        'longitude_top_left': None,
-        'latitude_bottom_left': None,
-        'longitude_bottom_left': None,
-        'latitude_bottom_right': None,
-        'longitude_bottom_right': None,
-    },
-)
-
-
-# Create heatmap
-heatmap(
-    activities_df=activities_df,
-    activities_coordinates_df=activities_coordinates_df,
-    activity_colors={'Hike': '#FF0000', 'Ride': '#00A3E0', 'Run': '#FF0000'},
-    map_tile='dark_all',
-    map_zoom_start=12,
-    line_weight=1.0,
-    line_opacity=0.6,
-    line_smooth_factor=1.0,
-)
-
-
-# Copy activities files to 'output/activities' folder
-# copy_activities(activities_files=activities_df['filename'])
-
-
-# Import .fit/.gpx/.tcx activity files into a DataFrame
-# activities_coordinates_df = activities_coordinates_import(activities_folder='activities')
-
-
-# Get geolocation for .fit/.gpx/.tcx activity files given the start recorded coordinates (first non-missing latitude/longitude)
-# activities_geolocation = activities_geolocator(activities_coordinates_df=activities_coordinates_df, skip_geolocation=False)
-
-
-# activities_file_rename(activities_geolocation_df=activities_geolocation, activities_folder='activities')
+        activity_file.rename(target=activity_file.with_name(f'{filename_new}{activity_file.suffix}'))
