@@ -1,5 +1,3 @@
-<meta name='keywords' content='Strava, Heatmap, Local Heatmap, Folium, python'>
-
 # Strava Local Heatmap Tool
 
 ## Description
@@ -35,9 +33,9 @@ Map interaction (option to navigate through the map, click in a line and get an 
 <img src="./media/heatmap-popup-1.png" alt="Heatmap Pop-up" width=800>
 </p>
 
-# Usage
+## Usage
 
-## Bulk export your Strava data
+### Bulk export your Strava data
 
 Strava's bulk export process documentation can be found [here](https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export#Bulk).
 
@@ -49,45 +47,45 @@ In essence, the process is as follows:
 2. Open the [Account Download and Deletion](https://www.strava.com/athlete/delete_your_account). Then press `Request Your Archive` button (Important: Don't press anything else on that page, particularly not the `Request Account Deletion` button).
 3. Wait until Strava notifies you that your archive is ready via email. Download the archive file and unzip it to `Downloads/Strava` folder (or alternatively set a different working directory in the [strava-local-heatmap-tool.py](strava-local-heatmap-tool.py) code).
 
-## Python dependencies
+### Python dependencies
 
 ```.ps1
-python -m pip install folium geopy pandas plotnine python-dateutil sweat
+python -m pip install fitparse folium geopy gpxpy pandas plotnine pyjanitor python-dateutil tcxreader
 ```
 
-## Functions
+### Functions
 
-### activities_import
+#### `activities_import`
 
 ```.py
-activities_import()
+activities_import(activities_directory, activities_file, skip_geolocation)
 ```
 
-#### Description
+##### Description
 
-- Imports Strava activities assuming that the current working directory is the [Strava data bulk export](#bulk-export-your-strava-data).
+- Imports Strava `activities.csv` into a DataFrame and enriches it with geolocation data from .fit/.gpx/.tcx activity files by using the initial recorded coordinates (first non-missing latitude/longitude).
 
-#### Parameters
+##### Parameters
 
-- None.
+- `activities_directory`: _path object_. Strava `activities` directory from the [Strava data bulk export](#bulk-export-your-strava-data).
+- `activities_file`: _path object_. Strava `activities.csv` file from the [Strava data bulk export](#bulk-export-your-strava-data).
+- `skip_geolocation`: _bool_, default: _True_. Skip geolocation retrieval for .fit/.gpx/.tcx activity files, using the initial recorded coordinates (first non-missing latitude/longitude). Note that geolocation retrieval relies on the public Nominatim instance (`nominatim.openstreetmap.org`), which may slow down the import process for exports containing a large number of activities (with ["an absolute maximum of 1 request per second"](https://operations.osmfoundation.org/policies/nominatim/)).
 
-<br>
-
-### activities_filter
+#### `activities_filter`
 
 ```.py
-activities_filter(activities_df=activities, activity_type=None, activity_state=None, bounding_box={'latitude_top_right': None, 'longitude_top_right': None, 'latitude_top_left': None, 'longitude_top_left': None, 'latitude_bottom_left': None, 'longitude_bottom_left': None, 'latitude_bottom_right': None, 'longitude_bottom_right': None})
+activities_filter(activities_df, activity_type=None, activity_location_state=None, bounding_box={'latitude_top_right': None, 'longitude_top_right': None, 'latitude_top_left': None, 'longitude_top_left': None, 'latitude_bottom_left': None, 'longitude_bottom_left': None, 'latitude_bottom_right': None, 'longitude_bottom_right': None})
 ```
 
-#### Description
+##### Description
 
 - Filter Strava activities DataFrame.
 
-#### Parameters
+##### Parameters
 
 - `activities_df`: Strava activities _DataFrame_. Imported from `activities_import()` function.
 - `activity_type`: _str list_. If _None_, no activity type filter will be applied.
-- `activity_state`: _str list_. If _None_, no state location filter will be applied.
+- `activity_location_state`: _str list_. If _None_, no state location filter will be applied.
 - `bounding_box`: _dict_. If _None_, no bounding box will be applied.
 
 Examples of `bounding_box`:
@@ -122,22 +120,21 @@ bounding_box={
 }
 ```
 
-<br>
-
-### heatmap
+#### `strava_activities_heatmap`
 
 ```.py
-heatmap(activities_df=activities, activities_coordinates_df=activities_coordinates, activity_colors={'Hike': '#00AD43', 'Ride': '#FF5800', 'Run': '#00A6FC'}, map_tile='dark_all', map_zoom_start=12, line_weight=1.0, line_opacity=0.6, line_smooth_factor=1.0)
+strava_activities_heatmap(activities_df, activities_coordinates_df=activities_coordinates, activity_colors={'Hike': '#00AD43', 'Ride': '#FF5800', 'Run': '#00A6FC'}, map_tile='dark_all', map_zoom_start=12, line_weight=1.0, line_opacity=0.6, line_smooth_factor=1.0)
 ```
 
-#### Description
+##### Description
 
 - Create Heatmap based on inputted _activities_ DataFrame.
 
-#### Parameters
+##### Parameters
 
 - `activities_df`: Strava activities _DataFrame_, default: _activities_. Imported from `activities_import()` function.
 - `activities_coordinates_df`: Strava activities coordinates _DataFrame_, default: _activities_coordinates_. Imported from `activities_import()` function.
+- `strava_activities_heatmap_output_path`: _path object_. Path where the Strava activity heatmap will be saved.
 - `activity_colors`: _dict_, default: _{'Hike': '#00AD43', 'Ride': '#FF5800', 'Run': '#00A6FC'}_. Depending on how many distinct `activity_type` are contained in the `activities` DataFrame, more dictionaries objects need to be added.
 - `map_tile`: _str_, options: _'dark_all'_, _'dark_nolabels'_, _'light_all'_, _'light_nolabels'_, _'terrain_background'_, _'toner_lite'_ and _'ocean_basemap'_, default: _'dark_all'_.
 - `map_zoom_start`: _int_, default: _12_. Initial zoom level for the map (for more details, check _zoom_start_ parameter for [folium.folium.Map documentation](https://python-visualization.github.io/folium/modules.html#folium.folium.Map)).
@@ -145,23 +142,172 @@ heatmap(activities_df=activities, activities_coordinates_df=activities_coordinat
 - `line_opacity`: _float_, default: _0.6_. Stroke opacity (for more details, check _opacity_ parameter for [folium.vector_layers.PolyLine](https://python-visualization.github.io/folium/modules.html#folium.vector_layers.PolyLine)).
 - `line_smooth_factor`: _float_, default: _1.0_. How much to simplify the polyline on each zoom level. More means better performance and smoother look, and less means more accurate representation (for more details, check _smooth_factor_ parameter for [folium.vector_layers.PolyLine](https://python-visualization.github.io/folium/modules.html#folium.vector_layers.PolyLine)).
 
-<br>
-
-### copy_activities
+#### `copy_activities`
 
 ```.py
-copy_activities(activities_files=activities['filename'])
+copy_activities(activities_directory, activities_files=activities['filename'])
 ```
 
-#### Description
+##### Description
 
 - Copies a given .fit/.gpx/.tcx list of files to 'output\activities' folder.
 
-#### Parameters
+##### Parameters
 
+- `activities_directory`: _path object_. Strava `activities` directory from the [Strava data bulk export](#bulk-export-your-strava-data).
 - `activities_files`: _list_, default: _activities['filename']_.
 
-## Save map as a high definition .png file and print it on canvas
+### Code Workflow Example
+
+```.py
+# Import packages
+from plotnine import aes, geom_line, ggplot, labs, scale_color_brewer, theme_minimal
+
+# Extract .gz files
+gz_extract(activities_directory=os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava Export', 'activities'))
+
+# Remove leading first line blank spaces of .tcx activity files
+tcx_lstrip(activities_directory=os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava Export', 'activities'))
+
+# Import Strava activities to DataFrame
+activities_df, activities_coordinates_df = activities_import(
+    activities_directory=os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava Export', 'activities'),
+    activities_file=os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava Export', 'activities.csv'),
+    skip_geolocation=True,
+)
+
+
+## Tests
+
+# Check for activities without activity_gear
+print(activities_df.query(expr='activity_gear.isna()').groupby(by=['activity_type'], level=None, as_index=False, sort=True, dropna=True).agg(count=('activity_id', 'nunique')))
+
+
+# Check for activity_name inconsistencies
+print(activities_df.query(expr='activity_name.str.contains(r"^ |  | $")'))
+
+print(activities_df.query(expr='activity_name.str.contains(r"[^\\s]-|-[^\\s]")'))
+
+
+# Check for distinct values for activity_name separated by a hyphen
+print(
+    pd.DataFrame(data=(activities_df.query(expr='activity_type == "Ride"')['activity_name'].str.split(pat=' - ', expand=True).stack().unique()), index=None, columns=['activity_name'], dtype=None).sort_values(
+        by=['activity_name'],
+        ignore_index=True,
+    ),
+)
+
+
+# Check for distinct values for activity_description
+print(
+    pd.DataFrame(
+        data=(
+            activities_df.query(expr='activity_type == "Weight Training" and activity_description.notna()')['activity_description']
+            .replace(to_replace=r'; | and ', value=r', ', regex=True)
+            .str.lower()
+            .str.split(pat=',', expand=True)
+            .stack()
+            .unique()
+        ),
+        index=None,
+        columns=['activity_description'],
+        dtype=None,
+    ).sort_values(by=['activity_description'], ignore_index=True),
+)
+
+
+## Summary
+
+# Count of activities by type
+print(activities_df.groupby(by=['activity_type'], level=None, as_index=False, sort=True, dropna=True).agg(count=('activity_id', 'nunique')))
+
+
+# Runs overview per year-month (distance in km)
+print(
+    activities_df.query(expr='activity_type == "Run"')
+    .assign(activity_month=lambda row: row['activity_date'].dt.strftime(date_format='%Y-%m'))
+    .groupby(by=['activity_month'], level=None, as_index=False, sort=True, dropna=True)
+    .agg(count=('activity_id', 'nunique'), distance=('distance', lambda x: x.sum() / 1000)),
+)
+
+
+# Strava yearly overview cumulative (Plot)
+strava_yearly_overview = (
+    activities_df.query(expr='activity_type == "Ride"')
+    .query(expr='activity_date >= "2017-01-01" and activity_date < "2023-01-01"')
+    .assign(distance=lambda row: row['distance'] / 1000, year=lambda row: row['activity_date'].dt.strftime(date_format='%Y'), day_of_year=lambda row: row['activity_date'].dt.dayofyear)
+    .assign(distance_cumulative=lambda row: row.groupby(by=['year'], level=None, as_index=False, sort=True, dropna=True)['distance'].transform('cumsum'))
+    .filter(
+        items=[
+            'activity_date',
+            'year',
+            'day_of_year',
+            'distance',
+            'distance_cumulative',
+        ],
+    )
+)
+
+(
+    ggplot(strava_yearly_overview, aes(x='day_of_year', y='distance_cumulative', group='year', color='factor(year)'))
+    + geom_line()
+    + scale_color_brewer(palette=1)
+    + theme_minimal()
+    + labs(title='Cumultative Distance (KM)', y='Distance (KM)', x='Day of Year', color='Year')
+)
+
+# Delete objects
+del strava_yearly_overview
+
+
+# Filter Strava activities
+activities_df = activities_filter(
+    activities_df=activities_df,
+    activity_type=['Hike', 'Ride', 'Run'],
+    activity_location_state=None,
+    bounding_box={
+        'latitude_top_right': None,
+        'longitude_top_right': None,
+        'latitude_top_left': None,
+        'longitude_top_left': None,
+        'latitude_bottom_left': None,
+        'longitude_bottom_left': None,
+        'latitude_bottom_right': None,
+        'longitude_bottom_right': None,
+    },
+)
+
+
+# Create heatmap
+strava_activities_heatmap(
+    activities_df=activities_df,
+    activities_coordinates_df=activities_coordinates_df,
+    strava_activities_heatmap_output_path=os.path.join(os.path.expanduser('~'), 'Downloads', 'strava-activities-heatmap.html'),
+    activity_colors={'Hike': '#FF0000', 'Ride': '#00A3E0', 'Run': '#FF0000'},
+    map_tile='dark_all',
+    map_zoom_start=12,
+    line_weight=1.0,
+    line_opacity=0.6,
+    line_smooth_factor=1.0,
+)
+
+
+# Copy activities files to 'output/activities' folder
+# copy_activities(activities_directory=os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava Export', 'activities'), activities_files=activities_df['filename'])
+
+
+# Import .fit/.gpx/.tcx activity files into a DataFrame
+# activities_coordinates_df = activities_coordinates_import(activities_directory=os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava Export', 'activities'))
+
+
+# Get geolocation for .fit/.gpx/.tcx activity files given the start recorded coordinates (first non-missing latitude/longitude)
+# activities_geolocation = activities_geolocator(activities_coordinates_df=activities_coordinates_df, skip_geolocation=True)
+
+
+# activities_file_rename(os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava Export', 'activities'), activities_geolocation_df=activities_geolocation)
+```
+
+### Canvas Workflow: Save map as a high definition .png file and print it on canvas
 
 Unfortunately Folium does not natively export a rendered map to .png.
 
@@ -173,15 +319,15 @@ The [canvas.xcf](./templates/canvas.xcf) is a Gimp template for printing a canva
 <img src="./media/heatmap-munich-2.png" alt="Heatmap Munich" width=800>
 </p>
 
-The statistics shown in the lower right corner are printed once the `heatmap` function is executed.
+The statistics shown in the lower right corner are printed once the `strava_activities_heatmap()` function is executed.
 
-# Documentation
+## Documentation
 
 [Strava API v3](https://developers.strava.com/docs/reference/#api-models-DetailedActivity): Definition of activities variables.
 
-# See also
+## See also
 
-## Similar projects
+### Similar projects
 
 These repositories have a similar or additional purpose to this project:
 
@@ -195,13 +341,13 @@ These repositories have a similar or additional purpose to this project:
 
 [dérive - Generate a heatmap from GPS tracks](https://erik.github.io/derive/): Generate heatmap by drag and dropping one or more .gpx/.tcx/.fit/.igc/.skiz file(s) (JavaScript, HTML).
 
-## Articles
+### Articles
 
 [Data Science For Cycling - How to Visualize GPX Strava Routes With Python and Folium](https://towardsdatascience.com/data-science-for-cycling-how-to-visualize-gpx-strava-routes-with-python-and-folium-21b96ade73c7) ([GitHub](https://github.com/better-data-science/data-science-for-cycling)).
 
 [Build Interactive GPS activity maps from GPX files using Folium](https://towardsdatascience.com/build-interactive-gps-activity-maps-from-gpx-files-using-folium-cf9eebba1fe7) ([GitHub](https://github.com/datachico/gpx_to_folium_maps)).
 
-## External links
+### External links
 
 [StatsHunters](https://www.statshunters.com): Connect your Strava account and show all your sport activities and added photos on one map.
 
