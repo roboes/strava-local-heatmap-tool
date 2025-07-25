@@ -1,5 +1,7 @@
 # Strava Local Heatmap Tool
 
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/roboes)
+
 ## Description
 
 This repository aims to be a multi feature tool for locally manipulating Strava's bulk export archive file. The main features are:
@@ -47,10 +49,10 @@ In essence, the process is as follows:
 2. Open the [Account Download and Deletion](https://www.strava.com/athlete/delete_your_account). Then press `Request Your Archive` button (Important: Don't press anything else on that page, particularly not the `Request Account Deletion` button).
 3. Wait until Strava notifies you that your archive is ready via email. Download the archive file and unzip it to `Downloads/Strava` folder (or alternatively set a different working directory in the [strava-local-heatmap-tool.py](strava-local-heatmap-tool.py) code).
 
-### Python dependencies
+### Installation
 
 ```.ps1
-python -m pip install fitparse folium geopy gpxpy pandas plotnine pyjanitor python-dateutil tcxreader
+python -m pip install "git+https://github.com/roboes/strava-local-heatmap-tool.git@main"
 ```
 
 ### Functions
@@ -150,7 +152,7 @@ copy_activities(activities_directory, activities_files=activities['filename'])
 
 ##### Description
 
-- Copies a given .fit/.gpx/.tcx list of files to 'output\activities' folder.
+- Copies a given .fit/.gpx/.tcx list of files to 'output/activities' folder.
 
 ##### Parameters
 
@@ -161,6 +163,7 @@ copy_activities(activities_directory, activities_files=activities['filename'])
 
 ```.py
 # Import packages
+from strava_local_heatmap_tool.strava_local_heatmap_tool import activities_filter, strava_activities_heatmap, activities_import, gz_extract, tcx_lstrip
 from plotnine import aes, geom_line, ggplot, labs, scale_color_brewer, theme_minimal
 
 # Extract .gz files
@@ -177,19 +180,19 @@ activities_df, activities_coordinates_df = activities_import(
 )
 
 
-## Tests
+# Tests
 
-# Check for activities without activity_gear
+## Check for activities without activity_gear
 print(activities_df.query(expr='activity_gear.isna()').groupby(by=['activity_type'], level=None, as_index=False, sort=True, dropna=True).agg(count=('activity_id', 'nunique')))
 
 
-# Check for activity_name inconsistencies
+## Check for activity_name inconsistencies
 print(activities_df.query(expr='activity_name.str.contains(r"^ |  | $")'))
 
 print(activities_df.query(expr='activity_name.str.contains(r"[^\\s]-|-[^\\s]")'))
 
 
-# Check for distinct values for activity_name separated by a hyphen
+## Check for distinct values for activity_name separated by a hyphen
 print(
     pd.DataFrame(data=(activities_df.query(expr='activity_type == "Ride"')['activity_name'].str.split(pat=' - ', expand=True).stack().unique()), index=None, columns=['activity_name'], dtype=None).sort_values(
         by=['activity_name'],
@@ -198,7 +201,7 @@ print(
 )
 
 
-# Check for distinct values for activity_description
+## Check for distinct values for activity_description
 print(
     pd.DataFrame(
         data=(
@@ -216,13 +219,13 @@ print(
 )
 
 
-## Summary
+# Summary
 
-# Count of activities by type
+## Count of activities by type
 print(activities_df.groupby(by=['activity_type'], level=None, as_index=False, sort=True, dropna=True).agg(count=('activity_id', 'nunique')))
 
 
-# Runs overview per year-month (distance in km)
+## Runs overview per year-month (distance in km)
 print(
     activities_df.query(expr='activity_type == "Run"')
     .assign(activity_month=lambda row: row['activity_date'].dt.strftime(date_format='%Y-%m'))
@@ -231,7 +234,7 @@ print(
 )
 
 
-# Strava yearly overview cumulative (Plot)
+## Strava yearly overview cumulative (Plot)
 strava_yearly_overview = (
     activities_df.query(expr='activity_type == "Ride"')
     .query(expr='activity_date >= "2017-01-01" and activity_date < "2023-01-01"')
@@ -256,7 +259,7 @@ strava_yearly_overview = (
     + labs(title='Cumultative Distance (KM)', y='Distance (KM)', x='Day of Year', color='Year')
 )
 
-# Delete objects
+## Delete objects
 del strava_yearly_overview
 
 

@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2025-01-29
+# Last update: 2025-07-24
 
 # Save this file to '/.pre-commit-config.yaml'
 
@@ -26,8 +26,6 @@ repos:
       - id: destroyed-symlinks
       # - id: detect-aws-credentials
       - id: detect-private-key
-      - id: double-quote-string-fixer
-      - id: end-of-file-fixer
       - id: file-contents-sorter
       - id: fix-byte-order-marker
       - id: fix-encoding-pragma
@@ -42,10 +40,15 @@ repos:
         args: ["--autofix"]
       - id: requirements-txt-fixer
       - id: sort-simple-yaml
-      - id: trailing-whitespace
+
+  - repo: https://github.com/ComPWA/taplo-pre-commit
+    rev: v0.9.3
+    hooks:
+      - id: taplo-format
+      - id: taplo-lint
 
   - repo: https://github.com/rtts/djhtml
-    rev: 3.0.7 # Without leading 'v'
+    rev: 3.0.8 # Without leading 'v'
     hooks:
       # - id: djhtml
       - id: djcss
@@ -60,7 +63,7 @@ repos:
         # args: ["--disable=MD013", "--disable=MD024", "--disable=MD033", "--disable=MD045"]
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 3.3.1 # Without leading 'v'
+    rev: 3.4.2 # Without leading 'v'
     hooks:
       - id: sqlfluff-fix
         args: ["--dialect=mysql", "--exclude-rules=ambiguous.column_count, layout.long_lines, references.keywords"]
@@ -81,18 +84,13 @@ repos:
       # # - id: lintr
       # - id: style-files
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.9.6
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.5
     hooks:
       - id: ruff
         args: ["--fix", "--exit-non-zero-on-fix", "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
       - id: ruff-format
         args: ["--line-length=220", "--config", "format.quote-style='single'", "--config", "format.indent-style='space'"]
-
-  - repo: https://github.com/asottile/add-trailing-comma
-    rev: v3.1.0
-    hooks:
-      - id: add-trailing-comma
 
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
@@ -109,7 +107,7 @@ repos:
       - id: text-unicode-replacement-char
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.1
+    rev: v3.20.0
     hooks:
       - id: pyupgrade
         args: ["--py312-plus"]
@@ -119,7 +117,7 @@ repos:
     hooks:
       - id: codespell
         exclude: '^data/'
-        args: ["--ignore-words-list=alle,als,deine,dokument,ges,ist,itens,nax,oder,produkt,ressource,ser,sie,tage,termine"] # The --ignore-words-list argument has a bug where it needs to be lowercase, see: https://github.com/codespell-project/codespell/issues/1390
+        args: ["--ignore-words-list=alle,als,datas,deine,dokument,doubleclick,fo,ges,ist,itens,nax,oder,produkt,ressource,ser,sie,tage,termine"] # The --ignore-words-list argument has a bug where it needs to be lowercase, see: https://github.com/codespell-project/codespell/issues/1390
 
 default_language_version:
   python: python3

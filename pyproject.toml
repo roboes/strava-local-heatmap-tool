@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "strava-local-heatmap-tool"
+version = "1.0.0"
+authors = [{ name = "roboes" }]
+readme = { file = "readme.md", content-type = "text/markdown" }
+description = "Create Strava heatmaps locally using Folium library in Python."
+requires-python = ">=3.11"
+license = { file = "license" }
+dependencies = [
+  "fitparse",
+  "folium",
+  "geopy",
+  "gpxpy",
+  "pandas",
+  "pyjanitor",
+  "python_dateutil",
+  "tcxreader",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/roboes/strava-local-heatmap-tool"
+
+[project.scripts]
+strava-local-heatmap-tool = "strava_local_heatmap_tool:entrypoint"
+
+[tool.setuptools]
+packages = ["strava_local_heatmap_tool"]
