@@ -1,8 +1,8 @@
 fitparse==1.2.0
-folium==0.19.4
+folium==0.20.0
 geopy==2.4.1
 gpxpy==1.6.2
-pandas==2.2.3
-pyjanitor==0.30.0
+pandas==2.3.1
+pyjanitor==0.31.0
 python_dateutil==2.8.2
-tcxreader==0.4.10
+tcxreader==0.4.11

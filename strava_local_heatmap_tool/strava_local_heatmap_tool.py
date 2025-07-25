@@ -1,19 +1,7 @@
-## Strava Local Heatmap Tool
-# Last update: 2025-01-28
-
-
 """About: Create Strava heatmaps locally using Folium library in Python."""
 
-
-###############
-# Initial Setup
-###############
-
-# Erase all declared global variables
-globals().clear()
-
-
 # Import packages
+
 from datetime import timedelta
 import glob
 import gzip
@@ -31,6 +19,7 @@ import gpxpy
 import gpxpy.gpx
 from janitor import clean_names
 import pandas as pd
+from pandas import DataFrame
 from tcxreader.tcxreader import TCXReader
 
 
@@ -41,12 +30,10 @@ if pd.__version__ >= '1.5.0' and pd.__version__ < '3.0.0':
     pd.options.mode.copy_on_write = True
 
 
-###########
 # Functions
-###########
 
 
-def gz_extract(*, activities_directory):
+def gz_extract(*, activities_directory: str) -> None:
     # List of files including path
     files = glob.glob(pathname=os.path.join(activities_directory, '*.gz'), recursive=False)
 
@@ -63,7 +50,7 @@ def gz_extract(*, activities_directory):
             os.remove(path=file)
 
 
-def tcx_lstrip(*, activities_directory):
+def tcx_lstrip(*, activities_directory: str) -> None:
     """Remove leading first line blank spaces of .tcx activity files."""
     # List of .tcx files including path
     files = glob.glob(pathname=os.path.join(activities_directory, '*.tcx'), recursive=False)
@@ -80,7 +67,7 @@ def tcx_lstrip(*, activities_directory):
                     file_out.writelines(file_text)
 
 
-def activity_file_parse(*, file_path):
+def activity_file_parse(*, file_path: str) -> DataFrame:
     parsed_data = []
 
     if file_path.endswith('.fit'):
@@ -135,7 +122,7 @@ def activity_file_parse(*, file_path):
     return df
 
 
-def activities_coordinates_import(*, activities_directory):
+def activities_coordinates_import(*, activities_directory: str) -> DataFrame:
     """Import .fit/.gpx/.tcx activity files into a DataFrame."""
     # List of .fit/.gpx/.tcx files to be imported
     activities_files = glob.glob(pathname=os.path.join(activities_directory, '*.fit'), recursive=False)
@@ -177,7 +164,7 @@ def activities_coordinates_import(*, activities_directory):
     return activities_coordinates_df
 
 
-def activities_geolocator(*, activities_coordinates_df, skip_geolocation=True):
+def activities_geolocator(*, activities_coordinates_df: DataFrame, skip_geolocation: bool = True) -> DataFrame:
     """Get geolocation for .fit/.gpx/.tcx activity files given the start recorded coordinates (first non-missing latitude/longitude)."""
     # Settings and variables
     geolocator = Nominatim(domain='nominatim.openstreetmap.org', scheme='https', user_agent='strava-local-heatmap-tool')
@@ -279,7 +266,7 @@ def activities_geolocator(*, activities_coordinates_df, skip_geolocation=True):
     return activities_geolocation_df
 
 
-def activities_import(*, activities_directory, activities_file, skip_geolocation=True):
+def activities_import(*, activities_directory: str, activities_file: str, skip_geolocation: bool = True) -> tuple[DataFrame, DataFrame]:
     """
     Strava activities import.
 
@@ -380,7 +367,7 @@ def activities_import(*, activities_directory, activities_file, skip_geolocation
     return activities_df, activities_coordinates_df
 
 
-def activities_filter(*, activities_df, activity_type=None, activity_location_state=None, bounding_box=None):
+def activities_filter(*, activities_df: DataFrame, activity_type: list[str] | None = None, activity_location_state: list[str] | None = None, bounding_box: dict[str, float] | None = None) -> DataFrame:
     """Filter Strava activities DataFrame."""
     # Filter activities by type
     if activity_type is not None:
@@ -411,16 +398,16 @@ def activities_filter(*, activities_df, activity_type=None, activity_location_st
 
 def strava_activities_heatmap(
     *,
-    activities_df,
-    activities_coordinates_df,
-    strava_activities_heatmap_output_path,
-    activity_colors=None,
-    map_tile='dark_all',
-    map_zoom_start=12,
-    line_weight=1.0,
-    line_opacity=0.6,
-    line_smooth_factor=1.0,
-):
+    activities_df: DataFrame,
+    activities_coordinates_df: DataFrame,
+    strava_activities_heatmap_output_path: str,
+    activity_colors: dict[str, str] | None = None,
+    map_tile: str = 'dark_all',
+    map_zoom_start: int = 12,
+    line_weight: float = 1.0,
+    line_opacity: float = 0.6,
+    line_smooth_factor: float = 1.0,
+) -> None:
     """Create Heatmap based on inputted activities DataFrame."""
     activities_df = (
         activities_df
@@ -544,7 +531,7 @@ def strava_activities_heatmap(
 
 
 # Copy activities files to 'output/activities' folder
-def copy_activities(*, activities_directory, activities_files):
+def copy_activities(*, activities_directory: str, activities_files: pd.Series) -> None:
     # Create 'output/activities' folder
     os.makedirs(name=os.path.join(activities_directory, 'output', 'activities'), exist_ok=True)
 
@@ -554,7 +541,7 @@ def copy_activities(*, activities_directory, activities_files):
 
 
 # Rename activities files
-def activities_file_rename(*, activities_directory, activities_geolocation_df):
+def activities_file_rename(*, activities_directory: str, activities_geolocation_df: DataFrame) -> None:
     # List of .fit/.gpx/.tcx files to be renamed
     activities_files = glob.glob(pathname=os.path.join(activities_directory, '*.fit'), recursive=False)
     activities_files.extend(glob.glob(pathname=os.path.join(activities_directory, '*.gpx'), recursive=False))
