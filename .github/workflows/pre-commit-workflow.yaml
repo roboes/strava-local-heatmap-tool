@@ -1,5 +1,5 @@
 ## Pre-commit Workflow
-# Last update: 2025-01-29
+# Last update: 2025-09-10
 
 # Save this file to './.github/workflows/pre-commit-workflow.yaml'
 
@@ -23,24 +23,10 @@ jobs:
     # Sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout repository content - https://github.com/actions/checkout
-        uses: actions/checkout@v4
-
-      # - name: Setup node - https://github.com/actions/setup-node
-        # uses: actions/setup-node@v4
-        # with:
-          # node-version: 'latest'
-
-      # - name: Install markdownlint
-        # run: |
-          # npm install markdownlint --save-dev
-
-      # - name: Run PHP-CS-Fixer - https://github.com/marketplace/actions/cs-fixer-for-php
-        # uses: erkenes/php-cs-fixer-action@main
-        # with:
-          # args: --config="./.github/workflows/.php-cs-fixer.dist.php"
+        uses: actions/checkout@v5
 
       - name: Setup Python - https://github.com/actions/setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x' #  Latest stable major version of Python
 
