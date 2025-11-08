@@ -1,14 +1,24 @@
 ## Pre-commit configuration
-# Last update: 2025-09-14
+# Last update: 2025-10-20
 
 # Save this file to '/.pre-commit-config.yaml'
 
 repos:
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: prettier --write --print-width 220 --prose-wrap never --semi true --single-quote true --tab-width 2 --trailing-comma es5 --ignore-unknown
+        language: node
+        types_or: [javascript, jsx, ts, tsx, json, css, scss, html, markdown, yaml]
+        additional_dependencies:
+          - prettier@latest
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: check-added-large-files
-        args: ["--maxkb=500"]
+        args: ['--maxkb=500']
       - id: check-ast
       - id: check-builtin-literals
       - id: check-case-conflict
@@ -24,17 +34,16 @@ repos:
       - id: check-yaml
       - id: debug-statements
       - id: destroyed-symlinks
-      # - id: detect-aws-credentials
       - id: detect-private-key
       - id: file-contents-sorter
       - id: fix-byte-order-marker
+      - id: forbid-submodules
+        args: ['--fix=lf']
       - id: forbid-new-submodules
-      # - id: forbid-submodules
-      #   args: ["--fix=lf"]
       - id: mixed-line-ending
-        args: ["--fix=lf"]
+        args: ['--fix=lf']
       - id: pretty-format-json
-        args: ["--autofix"]
+        args: ['--autofix']
       - id: requirements-txt-fixer
       - id: sort-simple-yaml
 
@@ -44,47 +53,25 @@ repos:
       - id: taplo-format
       - id: taplo-lint
 
-  - repo: https://github.com/rtts/djhtml
-    rev: 3.0.9 # Without leading 'v'
-    hooks:
-      # - id: djhtml
-      - id: djcss
-      - id: djjs
-
-  # - repo: https://github.com/igorshubovych/markdownlint-cli
-    # rev: v0.44.0
-    # hooks:
-      # - id: markdownlint
-        # language: system
-        # types: [markdown]
-        # args: ["--disable=MD013", "--disable=MD024", "--disable=MD033", "--disable=MD045"]
-
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 3.4.2 # Without leading 'v'
+    rev: 4.0.0a1
     hooks:
       - id: sqlfluff-fix
-        args: ["--dialect=mysql", "--exclude-rules=ambiguous.column_count, layout.long_lines, references.keywords"]
-
-  # - repo: https://github.com/digitalpulp/pre-commit-php # Requires brew install php-cs-fixer
-    # rev: 1.4.0 # Without leading 'v'
-    # hooks:
-    # - id: php-cs-fixer
-      # files: \.(php)$
-      # args: [--rules=@PSR12]
+        args: ['--dialect=mysql', '--exclude-rules=ambiguous.column_count, layout.long_lines, references.keywords']
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.2
+    rev: v0.14.4
     hooks:
       - id: ruff
-        args: ["--fix", "--exit-non-zero-on-fix", "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
+        args: ['--fix', '--exit-non-zero-on-fix', '--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105'] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
       - id: ruff-format
-        args: ["--line-length=220", "--config", "format.quote-style='single'", "--config", "format.indent-style='space'"]
+        args: ['--line-length=220', '--config', "format.quote-style='single'", '--config', "format.indent-style='space'"]
 
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
     hooks:
       - id: python-check-blanket-noqa
-      # - id: python-check-blanket-type-ignore
+      - id: python-check-blanket-type-ignore
       - id: python-check-mock-methods
       - id: python-no-eval
       - id: python-no-log-warn
@@ -95,17 +82,10 @@ repos:
       - id: text-unicode-replacement-char
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.20.0
+    rev: v3.21.0
     hooks:
       - id: pyupgrade
-        args: ["--py313-plus"]
-
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
-    hooks:
-      - id: codespell
-        exclude: '^data/'
-        args: ["--ignore-words-list=alle,als,bootup,datas,deine,dokument,doubleclick,fo,ges,ist,itens,nax,oder,produkt,referers,ressource,ser,sie,tage,termine"] # The --ignore-words-list argument has a bug where it needs to be lowercase, see: https://github.com/codespell-project/codespell/issues/1390
+        args: ['--py314-plus']
 
 default_language_version:
   python: python3
