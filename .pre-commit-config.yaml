@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2025-10-20
+# Last update: 2025-12-23
 
 # Save this file to '/.pre-commit-config.yaml'
 
@@ -11,6 +11,7 @@ repos:
         entry: prettier --write --print-width 220 --prose-wrap never --semi true --single-quote true --tab-width 2 --trailing-comma es5 --ignore-unknown
         language: node
         types_or: [javascript, jsx, ts, tsx, json, css, scss, html, markdown, yaml]
+        # exclude: \.(html|jsx?)$
         additional_dependencies:
           - prettier@latest
 
@@ -54,13 +55,13 @@ repos:
       - id: taplo-lint
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.0.0a1
+    rev: 4.0.0
     hooks:
       - id: sqlfluff-fix
         args: ['--dialect=mysql', '--exclude-rules=ambiguous.column_count, layout.long_lines, references.keywords']
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.4
+    rev: v0.14.13
     hooks:
       - id: ruff
         args: ['--fix', '--exit-non-zero-on-fix', '--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105'] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
@@ -82,7 +83,7 @@ repos:
       - id: text-unicode-replacement-char
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.0
+    rev: v3.21.2
     hooks:
       - id: pyupgrade
         args: ['--py314-plus']
