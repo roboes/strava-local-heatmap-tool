@@ -222,7 +222,7 @@ def activities_geolocator(*, activities_coordinates_df: DataFrame, skip_geolocat
         activities_geolocation_df = (
             activities_geolocation_df
             # Remove columns
-            .drop(columns=['datetime', 'activity_geolocation'], axis=1, errors='ignore')
+            .drop(columns=['datetime', 'activity_geolocation'], errors='ignore')
         )
 
     if skip_geolocation is True:
@@ -287,7 +287,7 @@ def activities_import(*, activities_directory: str, activities_file: str, skip_g
         # Left join 'activities_geolocation_df'
         .merge(right=activities_geolocation_df, how='left', on=['filename'], indicator=False)
         # Remove columns
-        .drop(columns=['distance', 'commute'], axis=1, errors='ignore')
+        .drop(columns=['distance', 'commute'], errors='ignore')
         # Remame columns
         .rename(
             columns={
@@ -423,7 +423,7 @@ def strava_activities_heatmap(
         # Left join 'activities_df'
         .merge(right=activities_df.filter(items=['filename', 'activity_id', 'activity_type', 'distance']), how='left', on=['filename'], indicator=False)
         # Remove columns
-        .drop(columns=['filename'], axis=1, errors='ignore')
+        .drop(columns=['filename'], errors='ignore')
     )
 
     # Test memory usage

@@ -3,6 +3,6 @@ folium==0.20.0
 geopy==2.4.1
 gpxpy==1.6.2
 pandas==3.0.0
-pyjanitor==0.32.8
+pyjanitor==0.32.9
 python_dateutil==2.9.0.post0
 tcxreader==0.4.11
