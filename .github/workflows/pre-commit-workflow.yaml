@@ -1,5 +1,5 @@
 ## Pre-commit Workflow
-# Last update: 2025-11-25
+# Last update: 2026-08-06
 
 # Save this file to './.github/workflows/pre-commit-workflow.yaml'
 
@@ -13,6 +13,10 @@ on:
   push:
     branches: ['*']
 
+# Restrict all jobs to read-only access by default
+permissions:
+  contents: read
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # Job name
@@ -23,10 +27,10 @@ jobs:
     # Sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout repository content - https://github.com/actions/checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Python - https://github.com/actions/setup-python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x' #  Latest stable major version of Python
 

@@ -4,16 +4,15 @@
 # Save this file to '/.pre-commit-config.yaml'
 
 repos:
-  - repo: local
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.9.6
     hooks:
       - id: prettier
         name: prettier
         entry: prettier --write --print-width 220 --prose-wrap never --semi true --single-quote true --tab-width 2 --trailing-comma es5 --ignore-unknown
         language: node
-        types_or: [javascript, jsx, ts, tsx, json, css, scss, html, markdown, yaml]
+        files: \.(js|jsx|ts|tsx|mjs|cjs|json|css|scss|html|md|yaml|yml)$
         # exclude: \.(html|jsx?)$
-        additional_dependencies:
-          - prettier@latest
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -39,32 +38,29 @@ repos:
       - id: file-contents-sorter
       - id: fix-byte-order-marker
       - id: forbid-submodules
-        args: ['--fix=lf']
       - id: forbid-new-submodules
       - id: mixed-line-ending
         args: ['--fix=lf']
-      - id: pretty-format-json
-        args: ['--autofix']
       - id: requirements-txt-fixer
-      - id: sort-simple-yaml
 
   - repo: https://github.com/ComPWA/taplo-pre-commit
     rev: v0.9.3
     hooks:
       - id: taplo-format
       - id: taplo-lint
+        args: ['--no-schema']
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.0.0
+    rev: 4.3.0
     hooks:
       - id: sqlfluff-fix
         args: ['--dialect=mysql', '--exclude-rules=ambiguous.column_count, layout.long_lines, references.keywords']
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.14
+    rev: v0.16.3
     hooks:
       - id: ruff
-        args: ['--fix', '--exit-non-zero-on-fix', '--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105'] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
+        args: ['--fix', '--exit-non-zero-on-fix', '--ignore=BLE001,D103,E501,F821,S102,S110,SIM105,TRY002']
       - id: ruff-format
         args: ['--line-length=220', '--config', "format.quote-style='single'", '--config', "format.indent-style='space'"]
 

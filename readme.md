@@ -51,7 +51,7 @@ In essence, the process is as follows:
 
 ### Installation
 
-```.ps1
+```ps1
 python -m pip install "git+https://github.com/roboes/strava-local-heatmap-tool.git@main"
 ```
 
@@ -59,7 +59,7 @@ python -m pip install "git+https://github.com/roboes/strava-local-heatmap-tool.g
 
 #### `activities_import`
 
-```.py
+```py
 activities_import(activities_directory, activities_file, skip_geolocation)
 ```
 
@@ -75,7 +75,7 @@ activities_import(activities_directory, activities_file, skip_geolocation)
 
 #### `activities_filter`
 
-```.py
+```py
 activities_filter(activities_df, activity_type=None, activity_location_state=None, bounding_box={'latitude_top_right': None, 'longitude_top_right': None, 'latitude_top_left': None, 'longitude_top_left': None, 'latitude_bottom_left': None, 'longitude_bottom_left': None, 'latitude_bottom_right': None, 'longitude_bottom_right': None})
 ```
 
@@ -92,7 +92,7 @@ activities_filter(activities_df, activity_type=None, activity_location_state=Non
 
 Examples of `bounding_box`:
 
-```.py
+```py
 # Munich
 bounding_box={
 'latitude_top_right': 48.2316, 'longitude_top_right': 11.7170, # Top right boundary
@@ -102,7 +102,7 @@ bounding_box={
 }
 ```
 
-```.py
+```py
 # Greater Munich
 bounding_box={
 'latitude_top_right': 48.4032, 'longitude_top_right': 11.8255, # Top right boundary
@@ -112,7 +112,7 @@ bounding_box={
 }
 ```
 
-```.py
+```py
 # Southern Bavaria
 bounding_box={
 'latitude_top_right': 47.7900, 'longitude_top_right': 12.2692, # Top right boundary
@@ -124,7 +124,7 @@ bounding_box={
 
 #### `strava_activities_heatmap`
 
-```.py
+```py
 strava_activities_heatmap(activities_df, activities_coordinates_df=activities_coordinates, activity_colors={'Hike': '#00AD43', 'Ride': '#FF5800', 'Run': '#00A6FC'}, map_tile='dark_all', map_zoom_start=12, line_weight=1.0, line_opacity=0.6, line_smooth_factor=1.0)
 ```
 
@@ -146,7 +146,7 @@ strava_activities_heatmap(activities_df, activities_coordinates_df=activities_co
 
 #### `copy_activities`
 
-```.py
+```py
 copy_activities(activities_directory, activities_files=activities['filename'])
 ```
 
@@ -161,7 +161,7 @@ copy_activities(activities_directory, activities_files=activities['filename'])
 
 ### Code Workflow Example
 
-```.py
+```py
 # Import packages
 from strava_local_heatmap_tool.strava_local_heatmap_tool import activities_filter, strava_activities_heatmap, activities_import, gz_extract, tcx_lstrip
 from plotnine import aes, geom_line, ggplot, labs, scale_color_brewer, theme_minimal

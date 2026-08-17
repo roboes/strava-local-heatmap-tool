@@ -2,26 +2,25 @@
 
 # Import packages
 
-from datetime import timedelta
 import glob
 import gzip
 import os
-from pathlib import Path
 import shutil
 import webbrowser
+from datetime import timedelta
+from pathlib import Path
 
-from dateutil import parser
-from fitparse import FitFile
 import folium
-from geopy.extra.rate_limiter import RateLimiter
-from geopy.geocoders import Nominatim
 import gpxpy
 import gpxpy.gpx
-from janitor import clean_names
 import pandas as pd
+from dateutil import parser
+from fitparse import FitFile
+from geopy.extra.rate_limiter import RateLimiter
+from geopy.geocoders import Nominatim
+from janitor import clean_names
 from pandas import DataFrame
 from tcxreader.tcxreader import TCXReader
-
 
 # Functions
 
@@ -191,31 +190,31 @@ def activities_geolocator(*, activities_coordinates_df: DataFrame, skip_geolocat
 
         # Create 'activity_location_country_code' column
         activities_geolocation_df['activity_location_country_code'] = activities_geolocation_df.apply(
-            lambda row: (row['activity_geolocation'].raw.get('address').get('country_code') if pd.notna(row['activity_geolocation']) else None),
+            lambda row: row['activity_geolocation'].raw.get('address').get('country_code') if pd.notna(row['activity_geolocation']) else None,
             axis=1,
         )
 
         # Create 'activity_location_country' column
         activities_geolocation_df['activity_location_country'] = activities_geolocation_df.apply(
-            lambda row: (row['activity_geolocation'].raw.get('address').get('country') if pd.notna(row['activity_geolocation']) else None),
+            lambda row: row['activity_geolocation'].raw.get('address').get('country') if pd.notna(row['activity_geolocation']) else None,
             axis=1,
         )
 
         # Create 'activity_location_state' column
         activities_geolocation_df['activity_location_state'] = activities_geolocation_df.apply(
-            lambda row: (row['activity_geolocation'].raw.get('address').get('state') if pd.notna(row['activity_geolocation']) else None),
+            lambda row: row['activity_geolocation'].raw.get('address').get('state') if pd.notna(row['activity_geolocation']) else None,
             axis=1,
         )
 
         # Create 'activity_location_city' column
         activities_geolocation_df['activity_location_city'] = activities_geolocation_df.apply(
-            lambda row: (row['activity_geolocation'].raw.get('address').get('city') if pd.notna(row['activity_geolocation']) else None),
+            lambda row: row['activity_geolocation'].raw.get('address').get('city') if pd.notna(row['activity_geolocation']) else None,
             axis=1,
         )
 
         # Create 'activity_location_postal_code' column
         activities_geolocation_df['activity_location_postal_code'] = activities_geolocation_df.apply(
-            lambda row: (row['activity_geolocation'].raw.get('address').get('postcode') if pd.notna(row['activity_geolocation']) else None),
+            lambda row: row['activity_geolocation'].raw.get('address').get('postcode') if pd.notna(row['activity_geolocation']) else None,
             axis=1,
         )
 
